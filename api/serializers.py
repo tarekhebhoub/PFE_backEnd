@@ -1,6 +1,6 @@
 from rest_framework.authtoken.models import Token
 from rest_framework import serializers
-from .models import User,Pos_User
+from .models import User,Pos_User,Station
 from django.contrib.auth import authenticate
 from rest_framework.response import Response
 
@@ -8,7 +8,7 @@ from rest_framework.response import Response
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model=User
-        fields=('first_name','last_name','username','email','password','num_phone','matricule')
+        fields=('first_name','last_name','username','email','password','sold')
         extra_kwargs={'password':{'write_only':True}}
 
     # def create(self,validated_data):
@@ -33,4 +33,9 @@ class LoginSerializer(serializers.ModelSerializer):
 class PositionSerializer(serializers.ModelSerializer):
     class Meta:
         model=Pos_User
+        fields='__all__'
+
+class StationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=Station
         fields='__all__'
