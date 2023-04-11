@@ -50,8 +50,11 @@ class LoginView(APIView):
 
         user=authenticate(username=username,password=password)
         if user:
-            Token.objects.create(user=user)
-            return Response({"token":user.auth_token.key,"username":user.username})
+            try:
+                Token.objects.create(user=user)
+                return Response({"token":user.auth_token.key,"username":user.username})
+            except:
+                return Response({'token already exists'})
         else:
             return Response({"error":"Wrong Credentials"},status=status.HTTP_400_BAD_REQUEST)
 
