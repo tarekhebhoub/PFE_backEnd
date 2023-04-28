@@ -11,8 +11,8 @@ from django.shortcuts import get_object_or_404
 
 import hashlib
 
-from .models import User,Pos_User,Station
-from .serializers import UserSerializer,LoginSerializer,PositionSerializer,StationSerializer
+from .models import User,Pos_User,Station,Card
+from .serializers import UserSerializer,LoginSerializer,PositionSerializer,StationSerializer,CardSerializer
 
 class UserCreate(generics.CreateAPIView):
     authentication_classes=()
@@ -120,8 +120,14 @@ class StationsView(APIView):
     def get(self,request):
         station = Station.objects.all()
         serializer=StationSerializer(station,many=True)
-        
-        print(serializer.data)
+        data=serializer.data
+        for x in data:
+            print("_________________________")
+            id=x["id"]
+            station=Station.objects.get(id=id)
+            x["stock"]=len(station.velos.all())
+            print(x["stock"])
+        #print(serializer.data)
         return Response(serializer.data,status=status.HTTP_200_OK)
 
     def post(self,request):
@@ -144,7 +150,7 @@ class StationView(APIView):
         # station = Station.objects.get(id=pk)
         serializer=StationSerializer(station)
         data=serializer.data
-        data["stock"]=velos = len(station.velos.all())
+        data["stock"]=len(station.velos.all())
         
         print(serializer.data)
         return Response(data,status=status.HTTP_200_OK)
@@ -175,3 +181,58 @@ def get_pos(request):
     return Response({"u are not admin"})
 
 
+
+
+class CardView(APIView):
+    serializer_class=CardSerializer
+    def get(sekf,request):
+        if request.user.is_superuser:
+            cards=Card.objects.all()
+            serializer=CardSerializer(cards,many=True)
+            
+            return Response(serializer.data)
+        return Response({"U are not Admin"})
+    def post(self,request):
+        if request.user.is_superuser:
+            serializer=CardSerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data,status=status.HTTP_201_CREATED)
+            else:
+                return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+        return Response({"U are not Admin"},status=status.HTTP_400_BAD_REQUEST)
+
+class CardViewPk(APIView):
+    def get(self,request,pk):
+        if request.user.is_superuser:
+            card=get_object_or_404(Card,id=pk)
+            serializer=CardSerializer(card)
+            return Response(serializer.data)
+        return Response({"u r not an admin"})
+        def delete(self,request,pk):
+            if request.user.is_superuser:
+                card=get_object_or_404(Card,id=pk)
+                card.delete()
+                return Response("delete succefuly",status=status.HTTP_204_NO_CONTENT)
+            return Response({"U are not Admin"},status=status.HTTP_400_BAD_REQUEST)
+        def put(self,request,pk):
+            if request.user.is_superuser:
+                card=get_object_or_404(Card,id=pk)
+                serializer=CardSerializer(card,data=request.data)
+                if serializer.is_valid():
+                    serializer.save()
+                    return Response(serializer.data,status=status.HTTP_200_OK)
+                else:
+                    return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+            return Response({"U are not Admin"},status=status.HTTP_400_BAD_REQUEST)
+
+class Sold(APIView):
+    def post(self, request):
+        token = request.data.get('token')
+        card = get_object_or_404(Card, token=token, used=False)
+        user=get_object_or_404(User,id=request.user)
+        user.sold+=card.balance
+        card.used=True
+        card.save()
+        user.save()
+        return Response({"sold":user.sold})

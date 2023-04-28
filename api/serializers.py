@@ -1,6 +1,6 @@
 from rest_framework.authtoken.models import Token
 from rest_framework import serializers
-from .models import User,Pos_User,Station
+from .models import User,Pos_User,Station,Card
 from django.contrib.auth import authenticate
 from rest_framework.response import Response
 
@@ -39,3 +39,12 @@ class StationSerializer(serializers.ModelSerializer):
     class Meta:
         model=Station
         fields='__all__'
+
+class CardSerializer(serializers.ModelSerializer):
+    token = serializers.CharField(max_length=100,required=False)
+    class Meta:
+        model=Card
+        fields=['balance','token']
+
+
+
