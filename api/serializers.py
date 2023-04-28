@@ -1,6 +1,6 @@
 from rest_framework.authtoken.models import Token
 from rest_framework import serializers
-from .models import User,Pos_User,Station,Card
+from .models import User,Pos_User,Station,Card,Transaction
 from django.contrib.auth import authenticate
 from rest_framework.response import Response
 
@@ -46,5 +46,9 @@ class CardSerializer(serializers.ModelSerializer):
         model=Card
         fields=['balance','token']
 
-
+class TransactionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=Transaction
+        fields='__all__'
+        
 

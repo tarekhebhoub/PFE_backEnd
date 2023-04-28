@@ -6,7 +6,7 @@ import uuid
 
 class User(AbstractUser):
     sold=models.IntegerField(default=10)
-    matricule=models.CharField(max_length=15,primary_key=True)
+    matricule=models.CharField(max_length=15,unique=True,null=True)
     def __str__(self):
         return self.username
 
@@ -53,9 +53,12 @@ class Card(models.Model):
         if not self.token:
             self.token = generate_token()
         super(Card, self).save(*args, **kwargs)
+    def __str__(self):
+        return str(self.balance)+' '+ str(self.used)
 
 
-# class Transaction(models.Model):
-#     card = models.ForeignKey(Card, on_delete=models.CASCADE)
-#     user = models.ForeignKey(User, on_delete=models.CASCADE)
-#     timestamp = models.DateTimeField(auto_now_add=True)
+
+class Transaction(models.Model):
+    card = models.ForeignKey(Card, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    timestamp = models.DateTimeField(auto_now_add=True)

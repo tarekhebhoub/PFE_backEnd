@@ -12,7 +12,7 @@ from django.shortcuts import get_object_or_404
 import hashlib
 
 from .models import User,Pos_User,Station,Card
-from .serializers import UserSerializer,LoginSerializer,PositionSerializer,StationSerializer,CardSerializer
+from .serializers import UserSerializer,LoginSerializer,PositionSerializer,StationSerializer,CardSerializer,TransactionSerializer
 
 class UserCreate(generics.CreateAPIView):
     authentication_classes=()
@@ -226,13 +226,20 @@ class CardViewPk(APIView):
                     return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
             return Response({"U are not Admin"},status=status.HTTP_400_BAD_REQUEST)
 
-class Sold(APIView):
+class SoldView(APIView):
+    serializer_class=TransactionSerializer
     def post(self, request):
         token = request.data.get('token')
         card = get_object_or_404(Card, token=token, used=False)
-        user=get_object_or_404(User,id=request.user)
-        user.sold+=card.balance
-        card.used=True
-        card.save()
-        user.save()
-        return Response({"sold":user.sold})
+        user=get_object_or_404(User,id=request.user.id)
+        data={"card":card.id,"user":user.id}
+        serializer=TransactionSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            user.sold+=card.balance
+            card.used=True
+            card.save()
+            user.save()
+            return Response({"sold":user.sold})
+        print("____________________________")
+        return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
