@@ -27,17 +27,23 @@ class Station(models.Model):
 
 class Velo(models.Model):
     # lock=models.CharField(max_length=50)  
-    station = models.ForeignKey(Station, on_delete=models.CASCADE, related_name='velos')
-    state=models.CharField(max_length=15)
+    station = models.ForeignKey(Station, on_delete=models.CASCADE, related_name='velos',null=True)
+    state=models.BooleanField(default=False)
     def __str__(self):
-        return self.state+' '+str(self.id)
+        return str(self.id)+' '+ str(self.state)
     
+class Reservation(models.Model):
+    velo=models.OneToOneField(Velo,on_delete=models.CASCADE,related_name="velo_located")
+    user=models.OneToOneField(User,related_name="user_of_velo",on_delete=models.CASCADE) 
+    def __str__(self):
+        return str(self.velo)+' '+str(self.user)
 
-class Alocation_Velo(models.Model):
-    velo=models.ForeignKey(Velo,on_delete=models.CASCADE,related_name="velo_located")
-    user=models.ForeignKey(User,related_name="user_of_velo",on_delete=models.CASCADE) 
+class Location(models.Model):
     date_open=models.DateTimeField()
-    date_close=models.DateTimeField()
+    date_close=models.DateTimeField(null=True)
+    reservation=models.ForeignKey(Reservation,on_delete=models.CASCADE,null=True,related_name="reservation_alocate")
+    def __str__(self):
+        return str(self.reservation)+' '+str(self.date_open)
 
 # class Voucher(models.Model):
 #  (Id , string ,value, user, uses, validity)

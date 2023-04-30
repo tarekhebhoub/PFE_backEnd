@@ -8,11 +8,15 @@ from rest_framework.views import APIView
 from rest_framework.decorators import api_view
 from rest_framework.parsers import JSONParser
 from django.shortcuts import get_object_or_404
+from django.db.models import Q
 
+import datetime
 import hashlib
 
-from .models import User,Pos_User,Station,Card
-from .serializers import UserSerializer,LoginSerializer,PositionSerializer,StationSerializer,CardSerializer,TransactionSerializer
+from .models import User,Pos_User,Station,Card,Velo,Reservation,Location
+from .serializers import (UserSerializer,LoginSerializer,
+                        PositionSerializer,StationSerializer,CardSerializer,
+                        TransactionSerializer,LocationSerializer,ReservationSerializer)
 
 class UserCreate(generics.CreateAPIView):
     authentication_classes=()
@@ -24,7 +28,9 @@ class UserCreate(generics.CreateAPIView):
             user = User.objects.create_user(**serializer.validated_data)
             token=Token.objects.create(user=user)
             serializer = UserSerializer(user)
-            return Response({"token":user.auth_token.key,"username":user.username},status=status.HTTP_201_CREATED)
+            data=serializer.data
+            data["token"]=user.auth_token.key
+            return Response(data,status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=400)
         # try:
     #     user=User(request.data)
@@ -52,7 +58,11 @@ class LoginView(APIView):
         if user:
             try:
                 Token.objects.create(user=user)
-                return Response({"token":user.auth_token.key,"username":user.username})
+                serializer = UserSerializer(user)
+                data=serializer.data
+                data["token"]=user.auth_token.key
+                return Response(data)
+                #return Response({"token":user.auth_token.key,"username":user.username})
             except:
                 return Response({'token already exists'})
         else:
@@ -180,8 +190,72 @@ def get_pos(request):
         return Response(serializer.data)
     return Response({"u are not admin"})
 
-
-
+class ReservationView(APIView):
+    serializer_class=ReservationSerializer
+    def post(self,request):
+        station=request.data.get("station")
+        velos=Velo.objects.filter(Q(station=station)&Q(state=False))
+        # velo=get_object_or_404(Velo,station=station,state=False)
+        try:
+            velo=velos[0]
+        except:
+            return Response({"no velo disponible"})
+        data={"user":request.user.id,"velo":velo.id}
+        serializer=ReservationSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            velo.station=None
+            velo.state=True
+            velo.save()
+            return Response(serializer.data,status=status.HTTP_200_OK)
+        return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+        # import datetime
+        # current_time = datetime.datetime.now()
+        # print("The current time is:", current_time)
+        # serializer=ReservationSerializer(data=request.data)
+        # if serializer.is_valid():
+        #     station=request.data.get('station')
+        #     velo=get_object_or_404(Velo,station=station,state=False)
+        #     velo.station=None
+        #     velo.state=True
+        #     velo.save()
+        #     serializer.save()
+        #     return Response(serializer.data,status=status.HTTP_200_OK)
+        # return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+        def put(self,request):
+            pass
+class LocationView(APIView):
+    serializer_class=LocationSerializer
+    def post(self,request):
+        current_time = datetime.datetime.now()
+        reservation=Reservation.objects.get(user=request.user.id)
+        data={"date_open":current_time,"reservation":reservation.id}
+        serializer=LocationSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data,status=status.HTTP_200_OK)
+        return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+    def put(self,request):
+        current_time=datetime.datetime.now()
+        data={"date_close":current_time}
+        reservation=Reservation.objects.get(user=request.user.id)
+        location=Location.objects.get(reservation=reservation.id)
+        station=request.data.get("station")
+        station=Station.objects.get(id=station)
+        
+        velo=Velo.objects.get(id=reservation.velo.id)
+        if not location.date_close and station:
+            data={"date_close":current_time,"date_open":location.date_open,"reservation":reservation.id}
+            serializer=LocationSerializer(location,data=data)
+            if serializer.is_valid():
+                velo.station=station
+                velo.state=False
+                velo.save()
+                reservation.delete()
+                serializer.save()
+                return Response(serializer.data,status=status.HTTP_200_OK)
+            return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+        return Response({"enter the station"})
 
 class CardView(APIView):
     serializer_class=CardSerializer
