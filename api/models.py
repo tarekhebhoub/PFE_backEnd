@@ -40,8 +40,8 @@ class Reservation(models.Model):
 
 class Location(models.Model):
     date_open=models.DateTimeField()
-    date_close=models.DateTimeField(null=True)
-    reservation=models.ForeignKey(Reservation,on_delete=models.CASCADE,null=True,related_name="reservation_alocate")
+    #date_close=models.DateTimeField(null=True)
+    reservation=models.ForeignKey(Reservation,on_delete=models.CASCADE,blank=True,related_name="reservation_alocate")
     def __str__(self):
         return str(self.reservation)+' '+str(self.date_open)
 

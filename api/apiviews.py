@@ -10,6 +10,7 @@ from rest_framework.parsers import JSONParser
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
 
+import pytz
 import datetime
 import hashlib
 
@@ -222,8 +223,10 @@ class ReservationView(APIView):
         #     serializer.save()
         #     return Response(serializer.data,status=status.HTTP_200_OK)
         # return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
-        def put(self,request):
-            pass
+        def delete(self,request):
+            reservation=Reservation.objects.get(user=request.user.id)
+            reservation.delete()
+            return Response({"done!"},status=status.HTTP_200_OK)
 class LocationView(APIView):
     serializer_class=LocationSerializer
     def post(self,request):
@@ -235,26 +238,39 @@ class LocationView(APIView):
             serializer.save()
             return Response(serializer.data,status=status.HTTP_200_OK)
         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
-    def put(self,request):
+    def delete(self,request):
+        tz = pytz.timezone('Etc/GMT')
         current_time=datetime.datetime.now()
-        data={"date_close":current_time}
-        reservation=Reservation.objects.get(user=request.user.id)
-        location=Location.objects.get(reservation=reservation.id)
-        station=request.data.get("station")
-        station=Station.objects.get(id=station)
-        
+        current_time = tz.localize(current_time)
+        print(current_time)
+        reservation=get_object_or_404(Reservation,user=request.user.id)
+        location=get_object_or_404(Location,reservation=reservation.id)
+        try: 
+            station=request.data.get("station")
+        except:
+            return Response({"please select the station"})
+        station=get_object_or_404(Station,id=station)
+        date_open=location.date_open
+        print(date_open)
         velo=Velo.objects.get(id=reservation.velo.id)
-        if not location.date_close and station:
-            data={"date_close":current_time,"date_open":location.date_open,"reservation":reservation.id}
-            serializer=LocationSerializer(location,data=data)
-            if serializer.is_valid():
-                velo.station=station
-                velo.state=False
-                velo.save()
-                reservation.delete()
-                serializer.save()
-                return Response(serializer.data,status=status.HTTP_200_OK)
-            return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+        if station:
+            sold=int(int((current_time - date_open).total_seconds())/60)*20
+            user=User.objects.get(id=request.user.id)
+            user.sold-=sold
+            sold=user.sold
+            user.save()
+            location.delete()
+            reservation.delete()
+            #serializer=LocationSerializer(location,data=data)
+            # if serializer.is_valid():
+            #     velo.station=station
+            #     velo.state=False
+            #     velo.save()
+            #     reservation.delete()
+            #     serializer.save()
+            #     return Response(serializer.data,status=status.HTTP_200_OK)
+            # return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+            return Response({"sold: ":sold},status=status.HTTP_200_OK)
         return Response({"enter the station"})
 
 class CardView(APIView):
@@ -317,3 +333,6 @@ class SoldView(APIView):
             return Response({"sold":user.sold})
         print("____________________________")
         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+
+
+

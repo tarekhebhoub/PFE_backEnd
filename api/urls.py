@@ -12,6 +12,6 @@ urlpatterns = [
     path('cards/',CardView.as_view()),
     path('sold/',SoldView.as_view()),
     path('reserver/',ReservationView.as_view()),
-    path('locate/',LocationView.as_view())
+    path('alocate/',LocationView.as_view())
 ]
 
