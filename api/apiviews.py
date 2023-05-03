@@ -201,7 +201,7 @@ class ReservationView(APIView):
             velo=velos[0]
         except:
             return Response({"no velo disponible"})
-        data={"user":request.user.id,"velo":velo.id}
+        data={"user":request.user.id,"velo":velo.id,"station":velo.station}
         serializer=ReservationSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
@@ -223,10 +223,16 @@ class ReservationView(APIView):
         #     serializer.save()
         #     return Response(serializer.data,status=status.HTTP_200_OK)
         # return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
-        def delete(self,request):
-            reservation=Reservation.objects.get(user=request.user.id)
-            reservation.delete()
-            return Response({"done!"},status=status.HTTP_200_OK)
+    def delete(self,request):
+        reservation=Reservation.objects.get(user=request.user.id)
+        velo=Velo.objects.get(id=reservation.velo.id)
+        velo.state=False
+        station=station=request.data.get("station")
+        station=Station.objects.get(id=station)
+        velo.station=station
+        velo.save()
+        reservation.delete()
+        return Response({"done!"},status=status.HTTP_200_OK)
 class LocationView(APIView):
     serializer_class=LocationSerializer
     def post(self,request):
