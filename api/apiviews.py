@@ -17,7 +17,7 @@ import hashlib
 from .models import User,Pos_User,Station,Card,Velo,Reservation,Location
 from .serializers import (UserSerializer,LoginSerializer,
                         PositionSerializer,StationSerializer,CardSerializer,
-                        TransactionSerializer,LocationSerializer,ReservationSerializer)
+                        TransactionSerializer,LocationSerializer,ReservationSerializer,UserDataSerializer,VelosSerializer)
 
 class UserCreate(generics.CreateAPIView):
     authentication_classes=()
@@ -182,14 +182,85 @@ class StationView(APIView):
         return Response({"U are not Admin"},status=status.HTTP_400_BAD_REQUEST)
 
 
+# Velos api
+class VelosView(APIView):
+    serializer_class=VelosSerializer
+    def get(self,request):
+        velos = Velo.objects.all()
+        serializer=VelosSerializer(velos,many=True)
+        data=serializer.data
+        for data in data:
+            station=get_object_or_404(Station,id=data["station"])
+            data["station_name"]=station.name
+        #print(serializer.data)
+        return Response(serializer.data,status=status.HTTP_200_OK)
+
+    def post(self,request):
+        if request.user.is_superuser:
+            serializer=VelosSerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data,status=status.HTTP_201_CREATED)
+            else:
+                return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+        return Response({"U are not Admin"},status=status.HTTP_400_BAD_REQUEST)
+    
+
+
+class VeloView(APIView):
+    serializer_class=VelosSerializer
+    def get(self,request,pk):
+        velo=get_object_or_404(Velo,id=pk)
+        serializer=VelosSerializer(velo)
+        return Response(serializer.data,status=status.HTTP_200_OK)
+    def delete(self,request,pk):
+        if request.user.is_superuser:
+            velo=get_object_or_404(Velo,id=pk)
+            velo.delete()
+            return Response("delete succefuly",status=status.HTTP_204_NO_CONTENT)
+        return Response({"U are not Admin"},status=status.HTTP_400_BAD_REQUEST)
+    def put(self,request,pk):
+        if request.user.is_superuser:
+            velo=get_object_or_404(Velo,id=pk)
+            serializer=VelosSerializer(velo,data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data,status=status.HTTP_200_OK)
+            return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+        return Response({"U are not Admin"},status=status.HTTP_400_BAD_REQUEST)
+
+
 @api_view(('GET',))
 def get_pos(request):
     if request.user.is_superuser:
-        print(request.headers.get('Authorization'))
         pos_users=Pos_User.objects.all()
         serializer=PositionSerializer(pos_users,many=True)
-        return Response(serializer.data)
+        users=serializer.data
+        data_response=[]
+        for user in users:
+            data={}
+            user_data=get_object_or_404(User,id=user['user'])
+            user_data=UserSerializer(user_data)
+            data['id']=user['id']
+            data['latitude']=user['latitude']
+            data['longitude']=user['longitude']
+            data['matricule']=user_data['matricule'].value
+            data['username']=user_data['username'].value
+            data_response.append(data)
+        return Response(data_response)
     return Response({"u are not admin"})
+
+@api_view(('GET',))
+def get_user_data(request):
+    if request.user.is_superuser:
+        users=User.objects.filter(is_superuser=False)
+        serializer=UserDataSerializer(users,many=True)
+        data=serializer.data
+        for x in data:
+            x["password"]=""
+        return Response(data)
+    return Response({'u r not admin'})
+
 
 class ReservationView(APIView):
     serializer_class=ReservationSerializer
@@ -232,6 +303,9 @@ class ReservationView(APIView):
         velo.station=station
         velo.save()
         reservation.delete()
+        user=get_object_or_404(User,id=request.user.id)
+        user.usage+=1
+        user.save()
         return Response({"done!"},status=status.HTTP_200_OK)
 class LocationView(APIView):
     serializer_class=LocationSerializer
@@ -339,6 +413,8 @@ class SoldView(APIView):
             return Response({"sold":user.sold})
         print("____________________________")
         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+
+
 
 
 

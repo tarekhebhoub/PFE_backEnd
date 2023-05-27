@@ -1,6 +1,6 @@
 from rest_framework.authtoken.models import Token
 from rest_framework import serializers
-from .models import User,Pos_User,Station,Card,Transaction,Reservation,Location
+from .models import User,Pos_User,Station,Card,Transaction,Reservation,Location,Velo
 from django.contrib.auth import authenticate
 from rest_framework.response import Response
 
@@ -10,6 +10,10 @@ class UserSerializer(serializers.ModelSerializer):
         model=User
         fields=('first_name','last_name','username','email','password','matricule','sold')
         extra_kwargs={'password':{'write_only':True}}
+class UserDataSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=User
+        fields='__all__'
 
     # def create(self,validated_data):
     #     user=User(
@@ -38,6 +42,11 @@ class PositionSerializer(serializers.ModelSerializer):
 class StationSerializer(serializers.ModelSerializer):
     class Meta:
         model=Station
+        fields='__all__'
+
+class VelosSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=Velo
         fields='__all__'
 
 class CardSerializer(serializers.ModelSerializer):

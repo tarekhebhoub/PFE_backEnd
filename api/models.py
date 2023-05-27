@@ -7,6 +7,7 @@ import uuid
 class User(AbstractUser):
     sold=models.IntegerField(default=10)
     matricule=models.CharField(max_length=15,unique=True,null=True)
+    usage=models.IntegerField(default=0)
     def __str__(self):
         return self.username
 
@@ -19,7 +20,7 @@ class Pos_User(models.Model):
 
 
 class Station(models.Model):
-    name=models.CharField(max_length=50)
+    name=models.CharField(max_length=50,unique=True)
     latitude=models.FloatField()
     longitude=models.FloatField()
     def __str__(self):
@@ -27,6 +28,8 @@ class Station(models.Model):
 
 class Velo(models.Model):
     # lock=models.CharField(max_length=50)  
+    name=models.CharField(max_length=50,unique=True)
+    code=models.IntegerField(null=False,blank=False)
     station = models.ForeignKey(Station, on_delete=models.CASCADE, related_name='velos',null=True)
     state=models.BooleanField(default=False)
     def __str__(self):
