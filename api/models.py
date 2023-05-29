@@ -8,6 +8,8 @@ class User(AbstractUser):
     sold=models.IntegerField(default=100)
     matricule=models.CharField(max_length=15,unique=True,null=True)
     usage=models.IntegerField(default=0)
+    gender=models.BooleanField()
+    last_login = models.DateTimeField(auto_now_add=True)
     def __str__(self):
         return self.username
 
@@ -27,17 +29,17 @@ class Station(models.Model):
         return self.name
 
 class Velo(models.Model):
-    # lock=models.CharField(max_length=50)  
+    # lock=models.CharField(max_length=50)
     name=models.CharField(max_length=50,unique=True)
     code=models.IntegerField(null=False,blank=False)
-    station = models.ForeignKey(Station, on_delete=models.CASCADE, related_name='velos',null=True)
+    station = models.ForeignKey(Station, on_delete=models.CASCADE, related_name='velos',null=True,blank=True)
     state=models.BooleanField(default=False)
     def __str__(self):
         return str(self.id)+' '+ str(self.state)
-    
+
 class Reservation(models.Model):
     velo=models.OneToOneField(Velo,on_delete=models.CASCADE,related_name="velo_located")
-    user=models.OneToOneField(User,related_name="user_of_velo",on_delete=models.CASCADE) 
+    user=models.OneToOneField(User,related_name="user_of_velo",on_delete=models.CASCADE)
     def __str__(self):
         return str(self.velo)+' '+str(self.user)
 

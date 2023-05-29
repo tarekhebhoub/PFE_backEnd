@@ -41,13 +41,13 @@ class UserCreate(generics.CreateAPIView):
     # #     last_name=request.data.get('last_name'),
     # # )
     # # user.set_password(request.data.get('password'))
-   
+
     #     user.save()
     #     token=Token.objects.create(user=user)
     #     return Response({"token":user.auth_token.key,"username":user.username},status=status.HTTP_201_CREATED)
         # except:
         #     return Response("username already exists",status.HTTP_400_BAD_REQUEST)
-    
+
 class LoginView(APIView):
     permission_classes=()
     serializer_class=LoginSerializer
@@ -71,14 +71,18 @@ class LoginView(APIView):
 
 class LogoutView(APIView):
     def post(self, request):
+        user=User.objects.get(id=request.user.id)
+        user.is_active=False
+
         Token.objects.filter(user=request.user).delete()
+        user.save()
         return Response({"Logout successfully"},status=status.HTTP_200_OK)
- 
+
 
 
 
 class Lock(APIView):
-   
+
     def crypt_lock(self,matricule):
         # plaintext = matricule
         # key = Fernet.generate_key()
@@ -93,7 +97,7 @@ class Lock(APIView):
         hash_object = hashlib.sha256(message.encode())
         hash_hex = hash_object.hexdigest()
         return hash_hex
-        
+
     def get(self,request):
         lock=self.crypt_lock(request.user.matricule)
         return Response({"lock":lock})
@@ -104,7 +108,7 @@ class Position(APIView):
     def get(self,request):
         pos_user=Pos_User.objects.get(user=request.user.id)
         serializer=PositionSerializer(pos_user)
-        
+
         return Response(serializer.data,status=status.HTTP_200_OK)
     def post(self,request):
         # data=JSONParser().parse(request.data)
@@ -115,18 +119,18 @@ class Position(APIView):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data,status=status.HTTP_201_CREATED)
-        
+
         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
     def put(self,request):
         pos_user=Pos_User.objects.get(user=request.user.id)
         pos_user.latitude=request.data.get("latitude")
         pos_user.longitude=request.data.get("longitude")
-        
+
         pos_user.save()
         serializer=PositionSerializer(pos_user)
-        
+
         return Response(serializer.data,status=status.HTTP_200_OK)
-    
+
 class StationsView(APIView):
     serializer_class=StationSerializer
     def get(self,request):
@@ -151,7 +155,7 @@ class StationsView(APIView):
             else:
                 return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
         return Response({"U are not Admin"},status=status.HTTP_400_BAD_REQUEST)
-    
+
 
 
 class StationView(APIView):
@@ -163,7 +167,7 @@ class StationView(APIView):
         serializer=StationSerializer(station)
         data=serializer.data
         data["stock"]=len(station.velos.all())
-        
+
         print(serializer.data)
         return Response(data,status=status.HTTP_200_OK)
     def delete(self,request,pk):
@@ -191,8 +195,11 @@ class VelosView(APIView):
         serializer=VelosSerializer(velos,many=True)
         data=serializer.data
         for data in data:
-            station=get_object_or_404(Station,id=data["station"])
-            data["station_name"]=station.name
+            if(data["station"]):
+                station=get_object_or_404(Station,id=data["station"])
+                data["station_name"]=station.name
+            else:
+                data["station_name"]="Taken"
         #print(serializer.data)
         return Response(serializer.data,status=status.HTTP_200_OK)
 
@@ -205,7 +212,7 @@ class VelosView(APIView):
             else:
                 return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
         return Response({"U are not Admin"},status=status.HTTP_400_BAD_REQUEST)
-    
+
 
 
 class VeloView(APIView):
@@ -326,7 +333,7 @@ class LocationView(APIView):
         print(current_time)
         reservation=get_object_or_404(Reservation,user=request.user.id)
         location=get_object_or_404(Location,reservation=reservation.id)
-        try: 
+        try:
             station=request.data.get("station")
         except:
             return Response({"please select the station"})
@@ -360,7 +367,7 @@ class CardView(APIView):
         if request.user.is_superuser:
             cards=Card.objects.all()
             serializer=CardSerializer(cards,many=True)
-            
+
             return Response(serializer.data)
         return Response({"U are not Admin"})
     def post(self,request):

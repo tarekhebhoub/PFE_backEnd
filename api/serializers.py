@@ -8,7 +8,7 @@ from rest_framework.response import Response
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model=User
-        fields=('first_name','last_name','username','email','password','matricule','sold')
+        fields=('first_name','last_name','username','email','password','matricule','sold','gender')
         extra_kwargs={'password':{'write_only':True}}
 class UserDataSerializer(serializers.ModelSerializer):
     class Meta:
@@ -59,7 +59,7 @@ class TransactionSerializer(serializers.ModelSerializer):
     class Meta:
         model=Transaction
         fields='__all__'
-        
+
 class LocationSerializer(serializers.ModelSerializer):
     date_close=serializers.DateTimeField(required=False)
     class Meta:
@@ -69,4 +69,4 @@ class LocationSerializer(serializers.ModelSerializer):
 class ReservationSerializer(serializers.ModelSerializer):
     class Meta:
         model=Reservation
-        fields='__all__'        
+        fields='__all__'
