@@ -5,7 +5,7 @@ import uuid
 # Create your models here.
 
 class User(AbstractUser):
-    sold=models.IntegerField(default=10)
+    sold=models.IntegerField(default=100)
     matricule=models.CharField(max_length=15,unique=True,null=True)
     usage=models.IntegerField(default=0)
     def __str__(self):
@@ -13,8 +13,8 @@ class User(AbstractUser):
 
 class Pos_User(models.Model):
     user=models.OneToOneField(User,related_name="pos_of_user",on_delete=models.CASCADE)
-    latitude=models.FloatField(default=0)
-    longitude=models.FloatField(default=0)
+    latitude=models.FloatField()
+    longitude=models.FloatField()
     def __str__(self):
         return "position: "+ str(self.user)
 

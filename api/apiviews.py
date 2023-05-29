@@ -115,6 +115,7 @@ class Position(APIView):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data,status=status.HTTP_201_CREATED)
+        
         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
     def put(self,request):
         pos_user=Pos_User.objects.get(user=request.user.id)
@@ -334,7 +335,7 @@ class LocationView(APIView):
         print(date_open)
         velo=Velo.objects.get(id=reservation.velo.id)
         if station:
-            sold=int(int((current_time - date_open).total_seconds())/60)*20
+            sold=int(int((current_time - date_open).total_seconds())/60)*5
             user=User.objects.get(id=request.user.id)
             user.sold-=sold
             sold=user.sold

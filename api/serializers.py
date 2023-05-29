@@ -53,7 +53,7 @@ class CardSerializer(serializers.ModelSerializer):
     token = serializers.CharField(max_length=100,required=False)
     class Meta:
         model=Card
-        fields=['balance','token']
+        fields=['id','balance','token']
 
 class TransactionSerializer(serializers.ModelSerializer):
     class Meta:
