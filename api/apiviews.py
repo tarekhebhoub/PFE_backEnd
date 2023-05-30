@@ -54,14 +54,19 @@ class LoginView(APIView):
     def post(self,request):
         username=request.data.get("username")
         password=request.data.get("password")
-
+        print(username,password)
         user=authenticate(username=username,password=password)
+        print(user)
         if user:
             try:
                 Token.objects.create(user=user)
                 serializer = UserSerializer(user)
                 data=serializer.data
                 data["token"]=user.auth_token.key
+                current_time = datetime.datetime.now()
+                user.last_login=current_time
+                user.active=False
+                user.save()
                 return Response(data)
                 #return Response({"token":user.auth_token.key,"username":user.username})
             except:
@@ -72,10 +77,12 @@ class LoginView(APIView):
 class LogoutView(APIView):
     def post(self, request):
         user=User.objects.get(id=request.user.id)
-        user.is_active=False
-
-        Token.objects.filter(user=request.user).delete()
+        user.active=False
+        current_time = datetime.datetime.now()
+        user.last_login=current_time
         user.save()
+        Token.objects.filter(user=request.user).delete()
+        
         return Response({"Logout successfully"},status=status.HTTP_200_OK)
 
 
@@ -248,12 +255,15 @@ def get_pos(request):
         for user in users:
             data={}
             user_data=get_object_or_404(User,id=user['user'])
+            velo_data=get_object_or_404(Velo,id=user['velo'])
             user_data=UserSerializer(user_data)
+            velo_data=VelosSerializer(velo_data)
             data['id']=user['id']
             data['latitude']=user['latitude']
             data['longitude']=user['longitude']
             data['matricule']=user_data['matricule'].value
             data['username']=user_data['username'].value
+            data["velo"]=velo_data["name"].value
             data_response.append(data)
         return Response(data_response)
     return Response({"u are not admin"})

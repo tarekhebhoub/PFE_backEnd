@@ -9,6 +9,7 @@ class User(AbstractUser):
     matricule=models.CharField(max_length=15,unique=True,null=True)
     usage=models.IntegerField(default=0)
     gender=models.BooleanField()
+    active=models.BooleanField(default=True)
     last_login = models.DateTimeField(auto_now_add=True)
     def __str__(self):
         return self.username
@@ -17,6 +18,7 @@ class Pos_User(models.Model):
     user=models.OneToOneField(User,related_name="pos_of_user",on_delete=models.CASCADE)
     latitude=models.FloatField()
     longitude=models.FloatField()
+    velo=models.OneToOneField('Velo',related_name="pos_of_user_velo",on_delete=models.CASCADE)
     def __str__(self):
         return "position: "+ str(self.user)
 
