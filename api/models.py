@@ -42,6 +42,8 @@ class Velo(models.Model):
 class Reservation(models.Model):
     velo=models.OneToOneField(Velo,on_delete=models.CASCADE,related_name="velo_located")
     user=models.OneToOneField(User,related_name="user_of_velo",on_delete=models.CASCADE)
+    velo_name=models.CharField(max_length=50)
+    velo_code=models.IntegerField(null=False,blank=False)
     def __str__(self):
         return str(self.velo)+' '+str(self.user)
 

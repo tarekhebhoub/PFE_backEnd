@@ -280,6 +280,33 @@ def get_user_data(request):
     return Response({'u r not admin'})
 
 
+@api_view(('GET',))
+def put_user_pos(request):
+    lat=request.GET["lat"]
+    lon=request.GET["long"]
+    velo=request.GET["velo"]
+    user=request.user.id
+    data={'user':user,'velo':velo,'latitude':lat,'longitude':lon}
+    serializer=PositionSerializer(data=data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data,status=status.HTTP_201_CREATED)
+    else:
+        # pos_user=Pos_User.objects.get(user=request.user.id)
+        pos_user=get_object_or_404(Pos_User,user=request.user.id)
+        lat=request.GET["lat"]
+        lon=request.GET["long"]
+        velo=request.GET["velo"]
+        user=request.user.id
+        data={'user':user,'velo':velo,'latitude':lat,'longitude':lon}
+        serializer=PositionSerializer(pos_user,data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data,status=status.HTTP_200_OK)
+        return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+    
+
+
 class ReservationView(APIView):
     serializer_class=ReservationSerializer
     def post(self,request):
@@ -290,7 +317,7 @@ class ReservationView(APIView):
             velo=velos[0]
         except:
             return Response({"no velo disponible"})
-        data={"user":request.user.id,"velo":velo.id,"station":velo.station}
+        data={"user":request.user.id,"velo":velo.id,"velo_name":velo.name,"velo_code":velo.code,"station":velo.station}
         serializer=ReservationSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
