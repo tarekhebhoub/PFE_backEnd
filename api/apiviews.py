@@ -379,9 +379,9 @@ class LocationView(APIView):
         print(date_open)
         velo=Velo.objects.get(id=reservation.velo.id)
         if station:
-            sold=int(int((current_time - date_open).total_seconds())/60)*5
+            price=int(int((current_time - date_open).total_seconds())/60)*5
             user=User.objects.get(id=request.user.id)
-            user.sold-=sold
+            user.sold-=price
             sold=user.sold
             user.save()
             location.delete()
@@ -395,7 +395,7 @@ class LocationView(APIView):
             #     serializer.save()
             #     return Response(serializer.data,status=status.HTTP_200_OK)
             # return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
-            return Response({"sold: ":sold},status=status.HTTP_200_OK)
+            return Response({"sold: ":sold,"price":price},status=status.HTTP_200_OK)
         return Response({"enter the station"})
 
 class CardView(APIView):
@@ -463,3 +463,22 @@ class SoldView(APIView):
 
 
 
+
+@api_view(('GET',))
+def post_res(self,request):
+        station=request.GET["station"]
+        velos=Velo.objects.filter(Q(station=station)&Q(state=False))
+        # velo=get_object_or_404(Velo,station=station,state=False)
+        try:
+            velo=velos[0]
+        except:
+            return Response({"no velo disponible"})
+        data={"user":request.user.id,"velo":velo.id,"velo_name":velo.name,"velo_code":velo.code,"station":velo.station}
+        serializer=ReservationSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            velo.station=None
+            velo.state=True
+            velo.save()
+            return Response(serializer.data,status=status.HTTP_200_OK)
+        return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)

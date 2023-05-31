@@ -1,5 +1,5 @@
 from django.urls import path
-from .apiviews import ReservationView,put_user_pos,VelosView,VeloView,UserCreate,get_user_data, CardView,LoginView, LocationView,LogoutView,Lock,get_pos,Position,StationsView,StationView,SoldView
+from .apiviews import ReservationView,put_user_pos,post_res,VelosView,VeloView,UserCreate,get_user_data, CardView,LoginView, LocationView,LogoutView,Lock,get_pos,Position,StationsView,StationView,SoldView
 urlpatterns = [
     path('login/',LoginView.as_view()),
     path('logout/',LogoutView.as_view()),
@@ -11,7 +11,7 @@ urlpatterns = [
     path('stations/<int:pk>',StationView.as_view()),
     path('cards/',CardView.as_view()),
     path('sold/',SoldView.as_view()),
-    path('reserver/',ReservationView.as_view()),
+    path('reserver/',post_res),
     path('alocate/',LocationView.as_view()),
     path('users_data/',get_user_data),
     path('velos/',VelosView.as_view()),
