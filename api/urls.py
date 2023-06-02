@@ -11,7 +11,7 @@ urlpatterns = [
     path('stations/<int:pk>',StationView.as_view()),
     path('cards/',CardView.as_view()),
     path('sold/',SoldView.as_view()),
-    path('reserver/',post_res),
+    path('reserver/',ReservationView.as_view()),
     path('alocate/',LocationView.as_view()),
     path('users_data/',get_user_data),
     path('velos/',VelosView.as_view()),

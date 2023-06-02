@@ -65,7 +65,7 @@ class LoginView(APIView):
                 data["token"]=user.auth_token.key
                 current_time = datetime.datetime.now()
                 user.last_login=current_time
-                user.active=False
+                user.active=True
                 user.save()
                 return Response(data)
                 #return Response({"token":user.auth_token.key,"username":user.username})
@@ -82,7 +82,7 @@ class LogoutView(APIView):
         user.last_login=current_time
         user.save()
         Token.objects.filter(user=request.user).delete()
-        
+
         return Response({"Logout successfully"},status=status.HTTP_200_OK)
 
 
@@ -304,7 +304,7 @@ def put_user_pos(request):
             serializer.save()
             return Response(serializer.data,status=status.HTTP_200_OK)
         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
-    
+
 
 
 class ReservationView(APIView):
@@ -384,8 +384,13 @@ class LocationView(APIView):
             user.sold-=price
             sold=user.sold
             user.save()
+            pos_user=Pos_User.objects.get(user=request.user.id)
+            pos_user.delete()
             location.delete()
             reservation.delete()
+            velo.station=station
+            velo.state=False
+            velo.save()
             #serializer=LocationSerializer(location,data=data)
             # if serializer.is_valid():
             #     velo.station=station
@@ -395,7 +400,7 @@ class LocationView(APIView):
             #     serializer.save()
             #     return Response(serializer.data,status=status.HTTP_200_OK)
             # return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
-            return Response({"sold: ":sold,"price":price},status=status.HTTP_200_OK)
+            return Response({"sold":sold,"price":price},status=status.HTTP_200_OK)
         return Response({"enter the station"})
 
 class CardView(APIView):
@@ -465,7 +470,7 @@ class SoldView(APIView):
 
 
 @api_view(('GET',))
-def post_res(self,request):
+def post_res(request):
         station=request.GET["station"]
         velos=Velo.objects.filter(Q(station=station)&Q(state=False))
         # velo=get_object_or_404(Velo,station=station,state=False)
