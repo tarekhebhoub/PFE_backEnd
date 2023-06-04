@@ -27,6 +27,8 @@ class Station(models.Model):
     name=models.CharField(max_length=50,unique=True)
     latitude=models.FloatField()
     longitude=models.FloatField()
+    reservation=models.IntegerField(default=10)
+    restauration=models.IntegerField(default=5)
     def __str__(self):
         return self.name
 

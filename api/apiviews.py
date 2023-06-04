@@ -287,6 +287,10 @@ def put_user_pos(request):
     velo=request.GET["velo"]
     user=request.user.id
     data={'user':user,'velo':velo,'latitude':lat,'longitude':lon}
+
+    reservation=get_object_or_404(Reservation,user=request.user.id)
+    location=get_object_or_404(Location,reservation=reservation.id)
+
     serializer=PositionSerializer(data=data)
     if serializer.is_valid():
         serializer.save()
@@ -312,11 +316,17 @@ class ReservationView(APIView):
     def post(self,request):
         station=request.data.get("station")
         velos=Velo.objects.filter(Q(station=station)&Q(state=False))
+        user=get_object_or_404(User,id=request.user.id)
+        if user.sold<=0:
+            return Response({"your sold < 0"})
         # velo=get_object_or_404(Velo,station=station,state=False)
         try:
             velo=velos[0]
         except:
             return Response({"no velo disponible"})
+        station=Station.objects.get(id=station)
+        station.reservation+=1
+        station.save()
         data={"user":request.user.id,"velo":velo.id,"velo_name":velo.name,"velo_code":velo.code,"station":velo.station}
         serializer=ReservationSerializer(data=data)
         if serializer.is_valid():
@@ -375,6 +385,8 @@ class LocationView(APIView):
         except:
             return Response({"please select the station"})
         station=get_object_or_404(Station,id=station)
+        station.restauration+=1
+        station.save()
         date_open=location.date_open
         print(date_open)
         velo=Velo.objects.get(id=reservation.velo.id)
@@ -407,9 +419,8 @@ class CardView(APIView):
     serializer_class=CardSerializer
     def get(sekf,request):
         if request.user.is_superuser:
-            cards=Card.objects.all()
+            cards=Card.objects.filter(used=False)
             serializer=CardSerializer(cards,many=True)
-
             return Response(serializer.data)
         return Response({"U are not Admin"})
     def post(self,request):
@@ -470,20 +481,55 @@ class SoldView(APIView):
 
 
 @api_view(('GET',))
-def post_res(request):
-        station=request.GET["station"]
-        velos=Velo.objects.filter(Q(station=station)&Q(state=False))
-        # velo=get_object_or_404(Velo,station=station,state=False)
-        try:
-            velo=velos[0]
-        except:
-            return Response({"no velo disponible"})
-        data={"user":request.user.id,"velo":velo.id,"velo_name":velo.name,"velo_code":velo.code,"station":velo.station}
-        serializer=ReservationSerializer(data=data)
-        if serializer.is_valid():
-            serializer.save()
-            velo.station=None
-            velo.state=True
-            velo.save()
-            return Response(serializer.data,status=status.HTTP_200_OK)
-        return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+def get_balance(request):
+    cards=Card.objects.filter(used=True)
+    total_balance=0
+    for card in cards:
+        total_balance+=card.balance
+    return Response({"total_balance":total_balance})
+
+@api_view(('GET',))
+def get_static(request):
+    male_users=User.objects.filter(gender=True)
+    female_users=User.objects.filter(gender=False)
+    users=User.objects.filter(is_superuser=False)
+    current_time = datetime.datetime.now()
+    current_time.today()
+    new_users=0
+    recurring_users=0
+    for user in users:
+        date_joined=user.date_joined.replace(tzinfo=None)
+        days=current_time-date_joined
+        if days.days<30:
+            new_users+=1
+        else:
+            recurring_users+=1
+    
+    male_users=int(len(male_users)/len(users)*100)
+    female_users=int(len(female_users)/len(users)*100)
+    if male_users+female_users!=100:
+        male_users-=1
+    stations=Station.objects.all()
+    reservation=0
+    restauration=0
+    for station in stations:
+        reservation+=station.reservation
+        restauration+=station.restauration
+    data={"male":male_users,"female":female_users,"new_users":new_users,"recurring_users":recurring_users,"reservation":reservation}
+    data1={}
+    data2=[]
+    for station in stations:
+        data1["station_name"]=station.name
+        data1["reservation"]=station.reservation
+        if reservation!=0:
+            data1["reservation_percent"]=int((station.reservation/reservation)*100)
+        else:
+            data1["reservation_percent"]=0
+        data1["restauration"]=station.restauration
+        if restauration!=0:
+            data1["restauration_percent"]=int((station.restauration/restauration)*100)
+        else:
+            data1["restauration_percent"]=0
+        data2.append(data1)
+    data["stations"]=data2
+    return Response(data)
