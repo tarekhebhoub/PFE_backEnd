@@ -1,72 +1,39 @@
-from rest_framework.authtoken.models import Token
 from rest_framework import serializers
-from .models import User,Pos_User,Station,Card,Transaction,Reservation,Location,Velo
+from . import models
 from django.contrib.auth import authenticate
 from rest_framework.response import Response
 
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
-        model=User
-        fields=('first_name','last_name','username','email','password','matricule','sold','gender')
+        model=models.Employee
+        fields=('first_name','last_name','username','email','password','Date_Naiss','Adresse_perso','Date_Recrut','Poste_actuel','Telephone','Id_dep','Photo')
         extra_kwargs={'password':{'write_only':True}}
-class UserDataSerializer(serializers.ModelSerializer):
-    class Meta:
-        model=User
-        fields='__all__'
 
-    # def create(self,validated_data):
-    #     user=User(
-    #         email=validated_data['email'],
-    #         username=validated_data['username'],
-    #         first_name=validated_data['first_name'],
-    #         last_name=validated_data['last_name'],
-    #         matricule=validated_data['matricule'],
-    #         num_phone=validated_data['num_phone']
-    #     )
-    #     user.set_password(validated_data['password'])
-    #     user.save()
-    #     token=Token.objects.create(user=user)
-    #     return Response({"token":"tarek"})
 
 class LoginSerializer(serializers.ModelSerializer):
     class Meta:
-        model=User
+        model=models.Employee
         fields=('username','password')
 
-class PositionSerializer(serializers.ModelSerializer):
+
+
+class EmployeeSerializer(serializers.ModelSerializer):
     class Meta:
-        model=Pos_User
+        model=models.Employee
         fields='__all__'
 
-class StationSerializer(serializers.ModelSerializer):
+class StructureSerializer(serializers.ModelSerializer):
     class Meta:
-        model=Station
+        model= models.Structure
         fields='__all__'
 
-class VelosSerializer(serializers.ModelSerializer):
+class DepartementSerializer(serializers.ModelSerializer):
     class Meta:
-        model=Velo
+        model= models.Departement
         fields='__all__'
 
-class CardSerializer(serializers.ModelSerializer):
-    token = serializers.CharField(max_length=100,required=False)
+class OffreEmpSerializer(serializers.ModelSerializer):
     class Meta:
-        model=Card
-        fields=['id','balance','token']
-
-class TransactionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model=Transaction
-        fields='__all__'
-
-class LocationSerializer(serializers.ModelSerializer):
-    date_close=serializers.DateTimeField(required=False)
-    class Meta:
-        model=Location
-        fields='__all__'
-
-class ReservationSerializer(serializers.ModelSerializer):
-    class Meta:
-        model=Reservation
-        fields='__all__'
+        model= models.OffreEMP
+        fields='__all__'        

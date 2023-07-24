@@ -1,23 +1,16 @@
 from django.urls import path
-from .apiviews import ReservationView,get_static,get_balance,put_user_pos,VelosView,VeloView,UserCreate,get_user_data, CardView,LoginView, LocationView,LogoutView,Lock,get_pos,Position,StationsView,StationView,SoldView
+from . import views
+from django.conf import settings
+from django.conf.urls.static import static
 urlpatterns = [
-    path('login/',LoginView.as_view()),
-    path('logout/',LogoutView.as_view()),
-    path('sign-up/',UserCreate.as_view()),
-    path('lock_key/',Lock.as_view()),
-    path('pos_users/',get_pos),
-    path('pos_user/',Position.as_view()),
-    path('stations/',StationsView.as_view()),
-    path('stations/<int:pk>',StationView.as_view()),
-    path('cards/',CardView.as_view()),
-    path('sold/',SoldView.as_view()),
-    path('reserver/',ReservationView.as_view()),
-    path('alocate/',LocationView.as_view()),
-    path('users_data/',get_user_data),
-    path('velos/',VelosView.as_view()),
-    path('velos/<int:pk>',VeloView.as_view()),
-    path('user_pos/',put_user_pos),
-    path('total_balance/',get_balance),
-    path('get_static/',get_static)
-]
+    path('sign-up/',views.EmployeeCreate.as_view()),
+    path('structure/',views.StructureView.as_view()),
+    path('structure/<int:pk>/',views.DepartementView.as_view()),
+    path('logout/',views.LogoutView.as_view()),
+    path('login/',views.LoginView.as_view()),
+    path('OffreEmp/',views.OffrelistView.as_view()),
+    path('OffreEmp/<int:pk>/',views.OffreView.as_view()),
 
+
+
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

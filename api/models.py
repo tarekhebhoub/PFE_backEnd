@@ -1,81 +1,57 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-import uuid
 
-# Create your models here.
-
-class User(AbstractUser):
-    sold=models.IntegerField(default=100)
-    matricule=models.CharField(max_length=15,unique=True,null=True)
-    usage=models.IntegerField(default=0)
-    gender=models.BooleanField()
-    active=models.BooleanField(default=True)
-    last_login = models.DateTimeField(auto_now_add=True)
+class Employee(AbstractUser):
+    Photo = models.ImageField(upload_to='images/',null=True)
+    Date_Naiss = models.DateField(blank=True,null=True)
+    Adresse_perso = models.CharField(max_length=100,null=True)
+    Date_Recrut = models.DateField(null=True)
+    Poste_actuel = models.CharField(max_length=50,null=True)
+    Telephone = models.IntegerField(null=True)
+    Id_dep = models.ForeignKey("Departement",on_delete=models.CASCADE,null=True)
+    Id_struc=models.ForeignKey("Structure",on_delete=models.CASCADE,null=True)
+    Echelle=models.CharField(max_length=20,null=True)
     def __str__(self):
         return self.username
 
-class Pos_User(models.Model):
-    user=models.OneToOneField(User,related_name="pos_of_user",on_delete=models.CASCADE)
-    latitude=models.FloatField()
-    longitude=models.FloatField()
-    velo=models.OneToOneField('Velo',related_name="pos_of_user_velo",on_delete=models.CASCADE)
+
+class Departement(models.Model):
+    Nom_dep = models.CharField(max_length=30)
+    id_struc = models.ForeignKey("Structure",on_delete=models.CASCADE,default=0)
     def __str__(self):
-        return "position: "+ str(self.user)
-
-
-class Station(models.Model):
-    name=models.CharField(max_length=50,unique=True)
-    latitude=models.FloatField()
-    longitude=models.FloatField()
-    reservation=models.IntegerField(default=10)
-    restauration=models.IntegerField(default=5)
+        return self.Nom_dep
+class Structure(models.Model):
+    Nom_struc = models.CharField(max_length=30,unique=True)
     def __str__(self):
-        return self.name
+        return self.Nom_struc
 
-class Velo(models.Model):
-    # lock=models.CharField(max_length=50)
-    name=models.CharField(max_length=50,unique=True)
-    code=models.IntegerField(null=False,blank=False)
-    station = models.ForeignKey(Station, on_delete=models.CASCADE, related_name='velos',null=True,blank=True)
-    state=models.BooleanField(default=False)
-    def __str__(self):
-        return str(self.id)+' '+ str(self.state)
+class FichierBourse(models.Model):
+    Raison_recrut = models.CharField(max_length=300)
+    Specialite = models.CharField(max_length=40)
+    formation_comp = models.CharField(max_length=300)
+    Commentaire = models.CharField(max_length=300)
+    Reponse_DRH = models.BooleanField()
+    Reponse_commesion = models.BooleanField()
+    Etat_fichier = models.CharField(max_length=30)
+    Telephone = models.IntegerField()
+    id_Emp = models.ForeignKey("Employee",on_delete=models.CASCADE,default=0)
+    Id_dep = models.ForeignKey("Departement",on_delete=models.CASCADE,default=0)
+    id_comm = models.ForeignKey("Commesion",on_delete=models.CASCADE,default=0)
 
-class Reservation(models.Model):
-    velo=models.OneToOneField(Velo,on_delete=models.CASCADE,related_name="velo_located")
-    user=models.OneToOneField(User,related_name="user_of_velo",on_delete=models.CASCADE)
-    velo_name=models.CharField(max_length=50)
-    velo_code=models.IntegerField(null=False,blank=False)
-    def __str__(self):
-        return str(self.velo)+' '+str(self.user)
-
-class Location(models.Model):
-    date_open=models.DateTimeField()
-    #date_close=models.DateTimeField(null=True)
-    reservation=models.ForeignKey(Reservation,on_delete=models.CASCADE,blank=True,related_name="reservation_alocate")
-    def __str__(self):
-        return str(self.reservation)+' '+str(self.date_open)
-
-# class Voucher(models.Model):
-#  (Id , string ,value, user, uses, validity)
-
-def generate_token():
-    return str(uuid.uuid4())
-
-class Card(models.Model):
-    token = models.CharField(max_length=100, unique=True)
-    balance = models.DecimalField(max_digits=10, decimal_places=2)
-    used = models.BooleanField(default=False)
-    def save(self, *args, **kwargs):
-        if not self.token:
-            self.token = generate_token()
-        super(Card, self).save(*args, **kwargs)
-    def __str__(self):
-        return str(self.balance)+' '+ str(self.used)
+class ParcoursProf(models.Model):
+    Poste_occup = models.CharField(max_length=30)
+    Periode = models.DateField()
+    Travaux_realises = models.CharField(max_length=100)
+    id_Emp = models.ForeignKey("Employee",on_delete=models.CASCADE,default=0)
+    id_fichier = models.ForeignKey("FichierBourse",on_delete=models.CASCADE,default=0)
 
 
+class Commesion(models.Model):
+    President = models.CharField(max_length=40)  
 
-class Transaction(models.Model):
-    card = models.ForeignKey(Card, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    timestamp = models.DateTimeField(auto_now_add=True)
+class OffreEMP(models.Model):
+   TitreOffre = models.CharField(max_length=50)
+   NombrePoste = models.IntegerField()
+   Id_dep = models.ForeignKey("Departement",on_delete=models.CASCADE,null=True)
+   Id_struc=models.ForeignKey("Structure",on_delete=models.CASCADE,null=True)
+   Description = models.FileField(upload_to='file/')
