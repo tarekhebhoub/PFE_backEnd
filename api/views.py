@@ -84,6 +84,9 @@ class OffrelistView (APIView):
         # for x in serializer.data:
         #     data.append(x['Nom_struc'])
         # print(data)
+        data=[]
+        for x in serializer.data:
+            print(x)
         print(serializer.data)
         return Response(serializer.data) 
     def post(self,request):
@@ -99,8 +102,6 @@ class OffreView(APIView):
     serializer_class=serializers.OffreEmpSerializer
     def get(self,request,pk):
         offre=get_object_or_404(models.OffreEMP,id=pk)
-
-
         serializer=serializers.OffreEmpSerializer(offre)
         data=serializer.data
 

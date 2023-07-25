@@ -34,6 +34,15 @@ class DepartementSerializer(serializers.ModelSerializer):
         fields='__all__'
 
 class OffreEmpSerializer(serializers.ModelSerializer):
+    Id_dep = serializers.SlugRelatedField(
+        slug_field='Nom_dep',
+        queryset=models.Departement.objects.all()
+    )
+    Id_struc = serializers.SlugRelatedField(
+        slug_field='Nom_struc',
+        queryset=models.Structure.objects.all()
+    )
+    
     class Meta:
         model= models.OffreEMP
         fields='__all__'        
