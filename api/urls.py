@@ -10,6 +10,9 @@ urlpatterns = [
     path('login/',views.LoginView.as_view()),
     path('OffreEmp/',views.OffrelistView.as_view()),
     path('OffreEmp/<int:pk>/',views.OffreView.as_view()),
+    path('fichier/',views.FichierListView.as_view()),
+    path('fichier/<int:pk>/',views.FichierView.as_view()),
+    path('fichier/<int:pk>/FichierB/',views.get, name='FichierB'),
 
 
 

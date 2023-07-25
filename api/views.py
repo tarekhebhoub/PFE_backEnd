@@ -1,3 +1,4 @@
+from django.http import HttpResponse
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from django.contrib.auth import authenticate
@@ -121,3 +122,60 @@ class OffreView(APIView):
                 return Response(serializer.data,status=status.HTTP_200_OK)
             return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
         return Response({"U are not Admin"},status=status.HTTP_400_BAD_REQUEST)    
+    
+class FichierListView (APIView):
+    serializer_class = serializers.FichierSerializer
+    def post(self,request):
+        data=request.data
+        serializer=serializers.FichierSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data,status=status.HTTP_201_CREATED)
+        return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST) 
+    def get(self,request):
+        queryset=models.FichierBourse.objects.all()
+        # search_param = self.request.query_params.get('search', None)
+        # if search_param:
+        #     queryset = queryset.filter(Nom_personne__icontains=search_param)
+        serializer=serializers.FichierSerializer(queryset,many=True)
+        # print(search_param)
+        return Response(serializer.data) 
+    
+class FichierView (APIView):
+
+    def delete(self,request,pk1):
+        try:
+            fichier=models.FichierBourse.objects.get(id=pk1)
+        except:
+           return Response({"Le fichier n'existe pas"},status=status.HTTP_400_BAD_REQUEST)
+        fichier.delete()
+        return Response({"Fichier supprimer"},status=status.HTTP_204_NO_CONTENT)
+    def put(self,request,pk1):
+        try:
+            fichier=models.FichierBourse.objects.get(id=pk1)
+        except:
+           return Response({"Le fichier n'existe pas"},status=status.HTTP_400_BAD_REQUEST)     
+        serializer=serializers.FichierSerializer(fichier,data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data,status=status.HTTP_200_OK)
+        return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)  
+    def get(self,request,pk1):
+        try:
+            fichier=models.FichierBourse.objects.get(id=pk1)
+        except:
+            return Response({"Le fichier n'existe pas"},status=status.HTTP_400_BAD_REQUEST)
+        
+        serializer=serializers.FichierSerializer(fichier)
+        return Response(serializer.data)    
+    
+
+#dowload pdf file
+
+def get(request,pk):
+        offre=get_object_or_404(models.OffreEMP,id=pk)
+
+        file_to_download = offre.Description
+        response = HttpResponse(file_to_download,  content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="contrat"'
+        return response

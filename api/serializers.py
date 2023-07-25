@@ -37,3 +37,8 @@ class OffreEmpSerializer(serializers.ModelSerializer):
     class Meta:
         model= models.OffreEMP
         fields='__all__'        
+
+class FichierSerializer(serializers.ModelSerializer):
+    class Meta:
+        model= models.OffreEMP
+        fields='__all__'
