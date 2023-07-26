@@ -13,7 +13,7 @@ urlpatterns = [
     path('fichier/',views.FichierListView.as_view()),
     path('fichier/<int:pk>/',views.FichierView.as_view()),
     path('fichier/<int:pk>/FichierB/',views.get, name='FichierB'),
-
-
-
+    path('fichier/<int:pk>/FichierB/',views.get, name='FichierB'),
+    path('parcoursprof/',views.TableListe.as_view()),
+    path('parcoursprof/<int:pk1>/',views.Table.as_view()),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

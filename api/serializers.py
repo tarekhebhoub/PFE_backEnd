@@ -49,5 +49,10 @@ class OffreEmpSerializer(serializers.ModelSerializer):
 
 class FichierSerializer(serializers.ModelSerializer):
     class Meta:
-        model= models.OffreEMP
+        model= models.FichierBourse
         fields='__all__'
+
+class FichierSerializer2(serializers.ModelSerializer):
+    class Meta:
+        model= models.ParcoursProf
+        fields='__all__'        

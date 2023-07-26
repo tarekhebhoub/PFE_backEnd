@@ -128,6 +128,9 @@ class FichierListView (APIView):
     serializer_class = serializers.FichierSerializer
     def post(self,request):
         data=request.data
+        user_id = Token.objects.get(key=request.auth.key).user_id   
+        data['id_Emp']=user_id
+        print(data)
         serializer=serializers.FichierSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
@@ -180,3 +183,51 @@ def get(request,pk):
         response = HttpResponse(file_to_download,  content_type='application/pdf')
         response['Content-Disposition'] = f'attachment; filename="contrat"'
         return response
+
+class Table (APIView):
+
+    def delete(self,request,pk1):
+        try:
+            fichier=models.ParcoursProf.objects.get(id=pk1)
+        except:
+           return Response({"Le fichier n'existe pas"},status=status.HTTP_400_BAD_REQUEST)
+        fichier.delete()
+        return Response({"Fichier supprimer"},status=status.HTTP_204_NO_CONTENT)
+    def put(self,request,pk1):
+        try:
+            fichier=models.ParcoursProf.objects.get(id=pk1)
+        except:
+           return Response({"Le fichier n'existe pas"},status=status.HTTP_400_BAD_REQUEST)     
+        serializer=serializers.FichierSerializer2(fichier,data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data,status=status.HTTP_200_OK)
+        return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)  
+    def get(self,request,pk1):
+        try:
+            fichier=models.ParcoursProf.objects.get(id=pk1)
+        except:
+            return Response({"Le fichier n'existe pas"},status=status.HTTP_400_BAD_REQUEST)
+        
+        serializer=serializers.FichierSerializer2(fichier)
+        return Response(serializer.data) 
+
+class TableListe (APIView):
+    serializer_class = serializers.FichierSerializer2
+    def post(self,request):
+        data=request.data
+        serializer=serializers.FichierSerializer2(data=data)
+        # user_id = Token.objects.get(key=request.auth.key).user_id   
+        # serializer.data['id_Emp']=user_id
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data,status=status.HTTP_201_CREATED)
+        return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST) 
+    def get(self,request):
+        queryset=models.ParcoursProf.objects.all()
+        # search_param = self.request.query_params.get('search', None)
+        # if search_param:
+        #     queryset = queryset.filter(Nom_personne__icontains=search_param)
+        serializer=serializers.FichierSerializer2(queryset,many=True)
+        # print(search_param)
+        return Response(serializer.data)         

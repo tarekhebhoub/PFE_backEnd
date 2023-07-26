@@ -5,5 +5,7 @@ admin.site.register(models.Employee)
 admin.site.register(models.Departement)
 admin.site.register(models.Structure)
 admin.site.register(models.OffreEMP)
+admin.site.register(models.FichierBourse)
+
 
 

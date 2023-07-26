@@ -27,24 +27,28 @@ class Structure(models.Model):
 
 class FichierBourse(models.Model):
     Raison_recrut = models.CharField(max_length=300)
+    PourPoste = models.CharField(max_length=20)
     Specialite = models.CharField(max_length=40)
     formation_comp = models.CharField(max_length=300)
-    Commentaire = models.CharField(max_length=300)
-    Reponse_DRH = models.BooleanField()
-    Reponse_commesion = models.BooleanField()
-    Etat_fichier = models.CharField(max_length=30)
-    Telephone = models.IntegerField()
-    id_Emp = models.ForeignKey("Employee",on_delete=models.CASCADE,default=0)
-    Id_dep = models.ForeignKey("Departement",on_delete=models.CASCADE,default=0)
-    id_comm = models.ForeignKey("Commesion",on_delete=models.CASCADE,default=0)
+    seminaire = models.CharField(max_length=100)
+    
+    Commentaire = models.CharField(max_length=300,null=True,blank=True)
+    Reponse_DRH = models.BooleanField(null=True,blank=True)
+    Reponse_commesion = models.BooleanField(null=True,blank=True)
+    
+    Etat_fichier = models.CharField(max_length=30,null=True,blank=True)
+    
+    id_Emp = models.ForeignKey("Employee",on_delete=models.CASCADE,null=True,blank=True)
+    id_comm = models.ForeignKey("Commesion",on_delete=models.CASCADE,null=True,blank=True)
 
 class ParcoursProf(models.Model):
     Poste_occup = models.CharField(max_length=30)
-    Periode = models.DateField()
     Travaux_realises = models.CharField(max_length=100)
     id_Emp = models.ForeignKey("Employee",on_delete=models.CASCADE,default=0)
-    id_fichier = models.ForeignKey("FichierBourse",on_delete=models.CASCADE,default=0)
-
+    date_deb = models.DateField()
+    date_fin = models.DateField()
+    # id_fichier = models.ForeignKey("FichierBourse",on_delete=models.CASCADE,default=0)
+# 
 
 class Commesion(models.Model):
     President = models.CharField(max_length=40)  
