@@ -216,9 +216,9 @@ class TableListe (APIView):
     serializer_class = serializers.FichierSerializer2
     def post(self,request):
         data=request.data
+        user_id = Token.objects.get(key=request.auth.key).user_id   
+        data['id_Emp']=user_id
         serializer=serializers.FichierSerializer2(data=data)
-        # user_id = Token.objects.get(key=request.auth.key).user_id   
-        # serializer.data['id_Emp']=user_id
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data,status=status.HTTP_201_CREATED)
