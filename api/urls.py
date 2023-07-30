@@ -12,7 +12,11 @@ urlpatterns = [
     path('OffreEmp/<int:pk>/',views.OffreView.as_view()),
     path('fichier/',views.FichierListView.as_view()),
     path('fichier/<int:pk1>/',views.FichierView.as_view()),
+    path('submitFile/<int:pk>/',views.fileSubmit),
     path('fichier/<int:pk>/FichierB/',views.get, name='FichierB'),
     path('parcoursprof/',views.TableListe.as_view()),
     path('parcoursprof/<int:pk1>/',views.Table.as_view()),
+    path('resume/',views.Resume),
+
+    path('departement/',views.Departements.as_view()),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

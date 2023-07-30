@@ -8,7 +8,8 @@ from django.shortcuts import get_object_or_404
 from . import models
 from . import serializers
 from rest_framework.views import APIView
-
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 
     
 class EmployeeCreate(generics.CreateAPIView):
@@ -36,7 +37,14 @@ class LoginView(APIView):
         user=authenticate(username=username,password=password)
         if user:
             Token.objects.create(user=user)
-            return Response({"token":user.auth_token.key,"username":user.username},status=status.HTTP_200_OK)
+            return Response({
+                "token":user.auth_token.key,
+                "username":user.username,
+                'is_superuser':user.is_superuser,
+                'is_departement':user.is_departement,
+                'is_stricture':user.is_stricture,
+                'is_commission':user.is_commission
+                },status=status.HTTP_200_OK)
         else:
             return Response({"error":"Wrong Credentials"},status=status.HTTP_400_BAD_REQUEST)
 
@@ -174,15 +182,6 @@ class FichierView (APIView):
         return Response(serializer.data)    
     
 
-#dowload pdf file
-
-def get(request,pk):
-        offre=get_object_or_404(models.OffreEMP,id=pk)
-
-        file_to_download = offre.Description
-        response = HttpResponse(file_to_download,  content_type='application/pdf')
-        response['Content-Disposition'] = f'attachment; filename="contrat"'
-        return response
 
 class Table (APIView):
 
@@ -231,3 +230,56 @@ class TableListe (APIView):
         serializer=serializers.FichierSerializer2(queryset,many=True)
         # print(search_param)
         return Response(serializer.data)         
+
+class Departements(APIView):
+    serializer_class = serializers.DepartementsSerializer
+    def post(self,request):
+        if request.user.is_superuser:
+            data=request.data
+            serializer=serializers.DepartementsSerializer(data=data)
+            if serializer.is_valid():
+                departement= models.Employee.objects.create_user(**serializer.validated_data)
+                departement.is_departement=True
+                departement.save()
+                serializer=serializers.DepartementsSerializer(departement)
+                return Response(serializer.data,status=status.HTTP_201_CREATED)
+            return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST) 
+        return Response({"u r not super user"})
+    def get(self,request):
+        if request.user.is_superuser:
+            queryset=models.Employee.objects.filter(is_departement=True)
+            serializer=serializers.DepartementsSerializer(queryset,many=True)
+            return Response(serializer.data)       
+        return Response({"u r not super user"})
+
+#dowload pdf file
+@api_view(['GET'])  # Use the appropriate HTTP method for your API
+@permission_classes([IsAuthenticated]) 
+def get(request,pk):
+        offre=get_object_or_404(models.OffreEMP,id=pk)
+        file_to_download = offre.Description
+        response = HttpResponse(file_to_download,  content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="contrat"'
+        return response
+        
+# Resume of Profile
+@api_view(['GET'])  # Use the appropriate HTTP method for your API
+@permission_classes([IsAuthenticated]) 
+def Resume(request):
+    user = request.user
+    serializer=serializers.ResumeSerializer(user)
+    return Response(serializer.data) 
+
+# submit of File
+@api_view(['PUT'])  # Use the appropriate HTTP method for your API
+@permission_classes([IsAuthenticated]) 
+def fileSubmit(request,pk):
+    try:
+        fichier=models.FichierBourse.objects.get(id=pk)
+    except:
+        return Response({"Le fichier n'existe pas"},status=status.HTTP_400_BAD_REQUEST)
+    fichier.submit_fichier=True
+    fichier.save()
+    return Response({"done"})
+
+

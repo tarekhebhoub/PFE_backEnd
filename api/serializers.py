@@ -56,3 +56,21 @@ class FichierSerializer2(serializers.ModelSerializer):
     class Meta:
         model= models.ParcoursProf
         fields='__all__'        
+
+class ResumeSerializer(serializers.ModelSerializer):
+    Id_dep = serializers.SlugRelatedField(
+        slug_field='Nom_dep',
+        queryset=models.Departement.objects.all()
+    )
+    Id_struc = serializers.SlugRelatedField(
+        slug_field='Nom_struc',
+        queryset=models.Structure.objects.all()
+    )
+    class Meta:
+        model= models.Employee
+        fields=['first_name','last_name','email','Photo','Date_Naiss','Adresse_perso','Date_Recrut','Poste_actuel','Telephone','Id_dep','Id_struc','Echelle']  
+
+class DepartementsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=models.Employee
+        fields=['username','password']
