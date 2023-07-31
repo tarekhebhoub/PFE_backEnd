@@ -17,6 +17,7 @@ urlpatterns = [
     path('parcoursprof/',views.TableListe.as_view()),
     path('parcoursprof/<int:pk1>/',views.Table.as_view()),
     path('resume/',views.Resume),
+    path('fileforDep/',views.FileForDep),
 
     path('departement/',views.Departements.as_view()),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

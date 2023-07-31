@@ -34,13 +34,15 @@ class FichierBourse(models.Model):
     Specialite = models.CharField(max_length=40)
     formation_comp = models.CharField(max_length=300)
     seminaire = models.CharField(max_length=100)
-    submit_fichier=models.BooleanField(null=True,blank=True)
+
+    submit_fichier=models.BooleanField(null=True,blank=True,default=False)
     Commentaire = models.CharField(max_length=300,null=True,blank=True)
     Reponse_DRH = models.BooleanField(null=True,blank=True)
     Reponse_commesion = models.BooleanField(null=True,blank=True)
     
     Etat_fichier = models.CharField(max_length=30,null=True,blank=True)
     
+    Id_dep=models.ForeignKey("Departement",on_delete=models.CASCADE)
     id_Offre=models.ForeignKey("OffreEMP",on_delete=models.CASCADE)
     id_Emp = models.ForeignKey("Employee",on_delete=models.CASCADE)
     id_comm = models.ForeignKey("Commesion",on_delete=models.CASCADE,null=True,blank=True)

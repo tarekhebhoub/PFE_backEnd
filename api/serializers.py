@@ -74,3 +74,15 @@ class DepartementsSerializer(serializers.ModelSerializer):
     class Meta:
         model=models.Employee
         fields=['username','password']
+
+
+class EmployeeNameSerializerField(serializers.Field):
+    def to_representation(self, value):
+        return f"{value.first_name} {value.last_name}"
+
+
+class DepFichierSerializer(serializers.ModelSerializer):
+    id_Emp = EmployeeNameSerializerField( read_only=True)
+    class Meta:
+        model=models.FichierBourse
+        fields='__all__'

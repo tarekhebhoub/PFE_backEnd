@@ -282,4 +282,12 @@ def fileSubmit(request,pk):
     fichier.save()
     return Response({"done"})
 
+@api_view(['GET'])  # Use the appropriate HTTP method for your API
+@permission_classes([IsAuthenticated]) 
+def FileForDep(request):
+    if request.user.is_departement:
+        files=models.FichierBourse.objects.filter(Q(submit_fichier=True)&Q(Id_dep=request.user.is_departement))
+        serializer=serializers.DepFichierSerializer(files,many=True)
+        return Response(serializer.data)
+    return Response({"u r not chef Departement"})
 
