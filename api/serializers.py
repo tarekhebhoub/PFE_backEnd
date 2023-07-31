@@ -73,7 +73,7 @@ class ResumeSerializer(serializers.ModelSerializer):
 class DepartementsSerializer(serializers.ModelSerializer):
     class Meta:
         model=models.Employee
-        fields=['username','password']
+        fields=['username','password','Id_struc','Id_dep']
 
 
 class EmployeeNameSerializerField(serializers.Field):
@@ -82,7 +82,7 @@ class EmployeeNameSerializerField(serializers.Field):
 
 
 class DepFichierSerializer(serializers.ModelSerializer):
-    id_Emp = EmployeeNameSerializerField( read_only=True)
+    # id_Emp = EmployeeNameSerializerField( read_only=True)
     class Meta:
         model=models.FichierBourse
         fields='__all__'

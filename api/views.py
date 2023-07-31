@@ -10,6 +10,7 @@ from . import serializers
 from rest_framework.views import APIView
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
+from django.db.models import Q
 
     
 class EmployeeCreate(generics.CreateAPIView):
@@ -270,6 +271,13 @@ def Resume(request):
     serializer=serializers.ResumeSerializer(user)
     return Response(serializer.data) 
 
+
+@api_view(['GET'])  # Use the appropriate HTTP method for your API
+@permission_classes([IsAuthenticated]) 
+def resumePK(request,pk):
+    user=models.Employee.objects.get(id=pk)
+    serializer=serializers.ResumeSerializer(user)
+    return Response(serializer.data)
 # submit of File
 @api_view(['PUT'])  # Use the appropriate HTTP method for your API
 @permission_classes([IsAuthenticated]) 
@@ -286,8 +294,27 @@ def fileSubmit(request,pk):
 @permission_classes([IsAuthenticated]) 
 def FileForDep(request):
     if request.user.is_departement:
-        files=models.FichierBourse.objects.filter(Q(submit_fichier=True)&Q(Id_dep=request.user.is_departement))
-        serializer=serializers.DepFichierSerializer(files,many=True)
+        requesting_employee=request.user
+        department = requesting_employee.Id_dep
+        employees_in_same_department = models.Employee.objects.filter(Id_dep=department)
+        employee_ids_in_same_department = employees_in_same_department.values_list('id', flat=True)
+        files_in_same_department = models.FichierBourse.objects.filter(Q(submit_fichier=True)&Q(id_Emp__in=employee_ids_in_same_department))
+
+        serializer=serializers.DepFichierSerializer(files_in_same_department,many=True)
+        for data in serializer.data:
+            emp=models.Employee.objects.get(id=data['id_Emp'])
+            nom=emp.first_name+' '+emp.last_name
+            data['nom']=nom
+        print(serializer.data)
         return Response(serializer.data)
     return Response({"u r not chef Departement"})
 
+
+
+
+@api_view(['GET'])  # Use the appropriate HTTP method for your API
+@permission_classes([IsAuthenticated]) 
+def parcours(request,pk):
+    parcours=models.ParcoursProf.objects.filter(id_Emp=pk)
+    serializer=serializers.FichierSerializer2(parcours,many=True)
+    return Response(serializer.data)

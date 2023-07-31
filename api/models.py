@@ -39,10 +39,11 @@ class FichierBourse(models.Model):
     Commentaire = models.CharField(max_length=300,null=True,blank=True)
     Reponse_DRH = models.BooleanField(null=True,blank=True)
     Reponse_commesion = models.BooleanField(null=True,blank=True)
+    NomRespo = models.CharField(max_length=50)
+    PrenomRespo = models.CharField(max_length=50)
+    CompetanceRespo = models.CharField(max_length=50)
+    fanction = models.CharField(max_length=50,null=True,blank=True)
     
-    Etat_fichier = models.CharField(max_length=30,null=True,blank=True)
-    
-    Id_dep=models.ForeignKey("Departement",on_delete=models.CASCADE)
     id_Offre=models.ForeignKey("OffreEMP",on_delete=models.CASCADE)
     id_Emp = models.ForeignKey("Employee",on_delete=models.CASCADE)
     id_comm = models.ForeignKey("Commesion",on_delete=models.CASCADE,null=True,blank=True)

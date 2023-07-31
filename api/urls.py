@@ -18,6 +18,8 @@ urlpatterns = [
     path('parcoursprof/<int:pk1>/',views.Table.as_view()),
     path('resume/',views.Resume),
     path('fileforDep/',views.FileForDep),
+    path('parcours/<int:pk>/',views.parcours),
 
+    path('resume/<int:pk>/',views.resumePK),
     path('departement/',views.Departements.as_view()),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
