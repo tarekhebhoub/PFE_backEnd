@@ -19,9 +19,17 @@ class LoginSerializer(serializers.ModelSerializer):
 
 
 class EmployeeSerializer(serializers.ModelSerializer):
+    # Id_dep = serializers.SlugRelatedField(
+    #     slug_field='Nom_dep',
+    #     queryset=models.Departement.objects.all()
+    # )
+    # Id_struc = serializers.SlugRelatedField(
+    #     slug_field='Nom_struc',
+    #     queryset=models.Structure.objects.all()
+    # )
     class Meta:
         model=models.Employee
-        fields='__all__'
+        fields=('id','first_name','last_name','email','is_stricture','is_commission','is_superuser','is_departement')
 
 class StructureSerializer(serializers.ModelSerializer):
     class Meta:
@@ -46,6 +54,14 @@ class OffreEmpSerializer(serializers.ModelSerializer):
     class Meta:
         model= models.OffreEMP
         fields='__all__'        
+
+
+
+class OffrePostEmpSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model= models.OffreEMP
+        fields='__all__'   
 
 class FichierSerializer(serializers.ModelSerializer):
     class Meta:

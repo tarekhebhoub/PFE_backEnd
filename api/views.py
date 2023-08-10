@@ -34,7 +34,6 @@ class LoginView(APIView):
     def post(self,request):
         username=request.data.get("username")
         password=request.data.get("password")
-        print(username)
         user=authenticate(username=username,password=password)
         if user:
             Token.objects.create(user=user)
@@ -68,7 +67,6 @@ class StructureView (APIView):
         # for x in serializer.data:
         #     data.append(x['Nom_struc'])
         # print(data)
-        print(serializer.data)
         return Response(serializer.data) 
     
 class DepartementView (APIView):
@@ -94,12 +92,9 @@ class OffrelistView (APIView):
         #     data.append(x['Nom_struc'])
         # print(data)
         data=[]
-        for x in serializer.data:
-            print(x)
-        print(serializer.data)
         return Response(serializer.data) 
     def post(self,request):
-        serializer = serializers.OffreEmpSerializer(data=request.data)
+        serializer = serializers.OffrePostEmpSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             
@@ -115,7 +110,6 @@ class OffreView(APIView):
         data=serializer.data
 
 
-        print(serializer.data)
         return Response(data,status=status.HTTP_200_OK)
     def delete(self,request,pk):
         if request.user.is_superuser:
@@ -139,7 +133,7 @@ class FichierListView (APIView):
         data=request.data
         user_id = Token.objects.get(key=request.auth.key).user_id   
         data['id_Emp']=user_id
-        print(data)
+
         serializer=serializers.FichierSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
@@ -293,21 +287,18 @@ def fileSubmit(request,pk):
 @api_view(['GET'])  # Use the appropriate HTTP method for your API
 @permission_classes([IsAuthenticated]) 
 def FileForDep(request):
-    if request.user.is_departement:
-        requesting_employee=request.user
-        department = requesting_employee.Id_dep
-        employees_in_same_department = models.Employee.objects.filter(Id_dep=department)
-        employee_ids_in_same_department = employees_in_same_department.values_list('id', flat=True)
-        files_in_same_department = models.FichierBourse.objects.filter(Q(submit_fichier=True)&Q(id_Emp__in=employee_ids_in_same_department))
+    requesting_employee=request.user
+    department = requesting_employee.Id_dep
+    employees_in_same_department = models.Employee.objects.filter(Id_dep=department)
+    employee_ids_in_same_department = employees_in_same_department.values_list('id', flat=True)
+    files_in_same_department = models.FichierBourse.objects.filter(Q(submit_fichier=True)&Q(id_Emp__in=employee_ids_in_same_department))
 
-        serializer=serializers.DepFichierSerializer(files_in_same_department,many=True)
-        for data in serializer.data:
-            emp=models.Employee.objects.get(id=data['id_Emp'])
-            nom=emp.first_name+' '+emp.last_name
-            data['nom']=nom
-        print(serializer.data)
-        return Response(serializer.data)
-    return Response({"u r not chef Departement"})
+    serializer=serializers.DepFichierSerializer(files_in_same_department,many=True)
+    for data in serializer.data:
+        emp=models.Employee.objects.get(id=data['id_Emp'])
+        nom=emp.first_name+' '+emp.last_name
+        data['nom']=nom
+    return Response(serializer.data)
 
 
 
@@ -318,3 +309,26 @@ def parcours(request,pk):
     parcours=models.ParcoursProf.objects.filter(id_Emp=pk)
     serializer=serializers.FichierSerializer2(parcours,many=True)
     return Response(serializer.data)
+
+@api_view(['GET'])  # Use the appropriate HTTP method for your API
+@permission_classes([IsAuthenticated]) 
+def GetUsers(request):
+    if request.user.is_superuser:
+        users=models.Employee.objects.all()
+        serializer=serializers.EmployeeSerializer(users,many=True)
+        return Response(serializer.data)
+    return Response({'u r not superuser'})
+
+
+@api_view(['PUT'])  # Use the appropriate HTTP method for your API
+@permission_classes([IsAuthenticated]) 
+def PutUsers(request,pk):
+    if request.user.is_superuser:
+        user=models.Employee.objects.get(id=pk)
+        data=request.data
+        serializer=serializers.EmployeeSerializer(user,data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors)
+    return Response({'u r not superuser'})
