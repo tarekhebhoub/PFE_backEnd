@@ -133,7 +133,7 @@ class FichierListView (APIView):
         data=request.data
         user_id = Token.objects.get(key=request.auth.key).user_id   
         data['id_Emp']=user_id
-
+        print('tarek')
         serializer=serializers.FichierSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
@@ -145,6 +145,10 @@ class FichierListView (APIView):
         # if search_param:
         #     queryset = queryset.filter(Nom_personne__icontains=search_param)
         serializer=serializers.FichierSerializer(queryset,many=True)
+        for data in serializer.data:
+            emp=models.Employee.objects.get(id=data['id_Emp'])
+            nom=emp.first_name+' '+emp.last_name
+            data['nom']=nom
         # print(search_param)
         return Response(serializer.data) 
     
@@ -158,11 +162,15 @@ class FichierView (APIView):
         fichier.delete()
         return Response({"Fichier supprimer"},status=status.HTTP_204_NO_CONTENT)
     def put(self,request,pk1):
+        id_Emp=request.user.id
+
         try:
             fichier=models.FichierBourse.objects.get(id=pk1)
         except:
-           return Response({"Le fichier n'existe pas"},status=status.HTTP_400_BAD_REQUEST)     
-        serializer=serializers.FichierSerializer(fichier,data=request.data)
+           return Response({"Le fichier n'existe pas"},status=status.HTTP_400_BAD_REQUEST)  
+        data=request.data
+        data['id_Emp']=id_Emp   
+        serializer=serializers.FichierSerializer(fichier,data=data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data,status=status.HTTP_200_OK)
@@ -188,11 +196,14 @@ class Table (APIView):
         fichier.delete()
         return Response({"Fichier supprimer"},status=status.HTTP_204_NO_CONTENT)
     def put(self,request,pk1):
+        id_Emp=request.user.id
         try:
             fichier=models.ParcoursProf.objects.get(id=pk1)
         except:
-           return Response({"Le fichier n'existe pas"},status=status.HTTP_400_BAD_REQUEST)     
-        serializer=serializers.FichierSerializer2(fichier,data=request.data)
+           return Response({"Le fichier n'existe pas"},status=status.HTTP_400_BAD_REQUEST)  
+        data=request.data
+        data['id_Emp']=id_Emp   
+        serializer=serializers.FichierSerializer2(fichier,data=data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data,status=status.HTTP_200_OK)
@@ -210,7 +221,7 @@ class TableListe (APIView):
     serializer_class = serializers.FichierSerializer2
     def post(self,request):
         data=request.data
-        user_id = Token.objects.get(key=request.auth.key).user_id   
+        user_id = request.user.id
         data['id_Emp']=user_id
         serializer=serializers.FichierSerializer2(data=data)
         if serializer.is_valid():
@@ -218,7 +229,7 @@ class TableListe (APIView):
             return Response(serializer.data,status=status.HTTP_201_CREATED)
         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST) 
     def get(self,request):
-        queryset=models.ParcoursProf.objects.all()
+        queryset=models.ParcoursProf.objects.filter(id_Emp=request.user.id)
         # search_param = self.request.query_params.get('search', None)
         # if search_param:
         #     queryset = queryset.filter(Nom_personne__icontains=search_param)
@@ -288,10 +299,13 @@ def fileSubmit(request,pk):
 @permission_classes([IsAuthenticated]) 
 def FileForDep(request):
     requesting_employee=request.user
+    print(requesting_employee)
     department = requesting_employee.Id_dep
-    employees_in_same_department = models.Employee.objects.filter(Id_dep=department)
+    employees_in_same_department = models.Employee.objects.filter(Q(Id_dep=department)&Q(is_departement=False))
     employee_ids_in_same_department = employees_in_same_department.values_list('id', flat=True)
-    files_in_same_department = models.FichierBourse.objects.filter(Q(submit_fichier=True)&Q(id_Emp__in=employee_ids_in_same_department))
+    print(employee_ids_in_same_department)
+
+    files_in_same_department = models.FichierBourse.objects.filter(Q(submit_fichier=True)&Q(id_Emp__in=employee_ids_in_same_department)&Q(Reponse_DRH=True))
 
     serializer=serializers.DepFichierSerializer(files_in_same_department,many=True)
     for data in serializer.data:
@@ -321,7 +335,7 @@ def GetUsers(request):
 
 
 @api_view(['PUT'])  # Use the appropriate HTTP method for your API
-@permission_classes([IsAuthenticated]) 
+@permission_classes([IsAuthenticated])
 def PutUsers(request,pk):
     if request.user.is_superuser:
         user=models.Employee.objects.get(id=pk)
@@ -332,3 +346,154 @@ def PutUsers(request,pk):
             return Response(serializer.data)
         return Response(serializer.errors)
     return Response({'u r not superuser'})
+
+
+
+
+@api_view(['PUT'])  # Use the appropriate HTTP method for your API
+@permission_classes([IsAuthenticated])
+def PutFileByDep(request,pk):
+    data=request.data
+    data=data['data']
+    fichier=get_object_or_404(models.FichierBourse,id=pk)
+    fichier.response_Dep=True
+    fichier.NomRespo=data['NomRespo']
+    fichier.PrenomRespo=data['PrenomRespo']
+    fichier.fanction=data['fanction']
+    fichier.CompetanceRespo=data['CompetanceRespo']
+    fichier.Commentaire=data['Commentaire']
+    fichier.favorable=data['favorable']
+    fichier.response_Dep=True
+    fichier.save()
+    return Response({'done!!!!!'})
+
+
+@api_view(['GET'])  # Use the appropriate HTTP method for your API
+@permission_classes([IsAuthenticated]) 
+def GetFileDrh_Satisfie(request):
+    files=models.FichierBourse.objects.all()
+    serializer=serializers.DepFichierSerializer(files,many=True)
+    for data in serializer.data:
+        emp=models.Employee.objects.get(id=data['id_Emp'])
+        nom=emp.first_name+' '+emp.last_name
+        data['nom']=nom
+    print(serializer.data)
+    return Response(serializer.data)
+
+
+@api_view(['GET'])  # Use the appropriate HTTP method for your API
+@permission_classes([IsAuthenticated]) 
+def GetFileDrh_Cree_Comm(request):
+    files=models.FichierBourse.objects.filter(response_Dep=True,id_comm=None)
+    serializer=serializers.DepFichierSerializer(files,many=True)
+    for data in serializer.data:
+        emp=models.Employee.objects.get(id=data['id_Emp'])
+        nom=emp.first_name+' '+emp.last_name
+        data['nom']=nom
+    print(serializer.data)
+    return Response(serializer.data)
+
+
+
+
+@api_view(['GET'])  # Use the appropriate HTTP method for your API
+@permission_classes([IsAuthenticated]) 
+def Get_Comm(request):
+    users=models.Employee.objects.filter(is_commission=True)
+    serializer=serializers.EmployeeSerializer(users,many=True)
+    return Response(serializer.data)
+
+
+@api_view(['PUT'])  # Use the appropriate HTTP method for your API
+@permission_classes([IsAuthenticated])
+def Add_comm(request,pk):
+    data=request.data
+    data=data['data']
+    fichier=get_object_or_404(models.FichierBourse,id=pk)
+    id_user=data['id_comm']
+    user=models.Employee.objects.get(id=id_user)
+    fichier.id_comm=user
+    fichier.save()
+    return Response({'done!!!!!'})
+
+@api_view(['PUT'])  # Use the appropriate HTTP method for your API
+@permission_classes([IsAuthenticated])
+def Set_satisfie(request,pk):
+    data=request.data
+    data=data['data']
+    fichier=get_object_or_404(models.FichierBourse,id=pk)
+    
+    fichier.Reponse_DRH=data['Reponse_DRH']
+    if data['Reponse_DRH']==False:
+        fichier.allright=False
+
+    fichier.save()
+    return Response({'done!!!!!'})
+
+
+
+
+@api_view(['GET'])  # Use the appropriate HTTP method for your API
+@permission_classes([IsAuthenticated]) 
+def Get_File_for_Com(request):
+    user=request.user
+    files=models.FichierBourse.objects.filter(id_comm=user.id)
+    serializer=serializers.DepFichierSerializer(files,many=True)
+    for data in serializer.data:
+        emp=models.Employee.objects.get(id=data['id_Emp'])
+        nom=emp.first_name+' '+emp.last_name
+        data['nom']=nom
+    return Response(serializer.data)
+
+@api_view(['PUT'])  # Use the appropriate HTTP method for your API
+@permission_classes([IsAuthenticated])
+def PutFileByCom(request,pk):
+    data=request.data
+    data=data['data']
+    fichier=get_object_or_404(models.FichierBourse,id=pk)
+    
+    fichier.Reponse_commesion=data['Reponse_commesion']
+    if data['Reponse_commesion']==False:
+        fichier.allright=False
+
+    fichier.save()
+    return Response({'done!!!!!'})
+
+
+
+@api_view(['GET'])  # Use the appropriate HTTP method for your API
+@permission_classes([IsAuthenticated]) 
+def Get_File_for_Dir(request):
+    files=models.FichierBourse.objects.exclude(Reponse_commesion=None)
+    offers=models.OffreEMP.objects.filter(Id_struc=request.user.Id_struc)
+    print(offers)
+    files=files.filter(id_Offre__in=offers)
+    serializer=serializers.DepFichierSerializer(files,many=True)
+    for data in serializer.data:
+        emp=models.Employee.objects.get(id=data['id_Emp'])
+        nom=emp.first_name+' '+emp.last_name
+        data['nom']=nom
+    return Response(serializer.data)
+
+@api_view(['PUT'])  # Use the appropriate HTTP method for your API
+@permission_classes([IsAuthenticated])
+def PutFileByDir(request,pk):
+    data=request.data
+    data=data['data']
+    fichier=get_object_or_404(models.FichierBourse,id=pk)
+    
+    fichier.response_Dir=data['response_Dir']
+    fichier.allright=data['response_Dir']
+    fichier.save()
+    return Response({'done!!!!!'})
+
+@api_view(['GET'])  # Use the appropriate HTTP method for your API
+@permission_classes([IsAuthenticated])
+def FileForEmp(request):
+    files=models.FichierBourse.objects.filter(id_Emp=request.user.id)
+    serializer=serializers.FichierSerializer(files,many=True)
+    # for data in serializer.data:
+    #     emp=models.Employee.objects.get(id=data['id_Emp'])
+    #     nom=emp.first_name+' '+emp.last_name
+    #     data['nom']=nom
+    return Response(serializer.data)

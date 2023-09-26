@@ -102,3 +102,12 @@ class DepFichierSerializer(serializers.ModelSerializer):
     class Meta:
         model=models.FichierBourse
         fields='__all__'
+
+
+
+class FileSerializerForDep(serializers.ModelSerializer):
+    class Meta:
+        model=models.FichierBourse
+        fields=['NomRespo','PrenomRespo','response_Dep','fanction','CompetanceRespo','Commentaire']
+
+

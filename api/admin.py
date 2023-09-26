@@ -6,6 +6,7 @@ admin.site.register(models.Departement)
 admin.site.register(models.Structure)
 admin.site.register(models.OffreEMP)
 admin.site.register(models.FichierBourse)
+admin.site.register(models.ParcoursProf)
 
 
 

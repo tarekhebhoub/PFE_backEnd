@@ -43,10 +43,17 @@ class FichierBourse(models.Model):
     PrenomRespo = models.CharField(max_length=50,blank=True)
     CompetanceRespo = models.CharField(max_length=50,blank=True)
     fanction = models.CharField(max_length=50,null=True,blank=True)
-    
-    id_Offre=models.ForeignKey("OffreEMP",on_delete=models.CASCADE,blank=True,null=True)
+    favorable=models.BooleanField(default=False)
+    response_Dep=models.BooleanField(null=True,blank=True)
+
+    response_Dir=models.BooleanField(null=True,blank=True)
+
+    id_Offre=models.ForeignKey("OffreEMP",on_delete=models.CASCADE)
     id_Emp = models.ForeignKey("Employee",on_delete=models.CASCADE)
-    id_comm = models.ForeignKey("Commesion",on_delete=models.CASCADE,null=True,blank=True)
+    
+    id_comm = models.ForeignKey("Employee",on_delete=models.CASCADE,null=True,blank=True,related_name='commission_of_file')
+
+    allright=models.BooleanField(null=True,blank=True)
 
 class ParcoursProf(models.Model):
     Poste_occup = models.CharField(max_length=30)
