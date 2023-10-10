@@ -7,9 +7,18 @@ from rest_framework.response import Response
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model=models.Employee
-        fields=('first_name','last_name','username','email','password','Date_Naiss','Adresse_perso','Date_Recrut','Poste_actuel','Telephone','Id_dep','Photo')
+        fields=('first_name','last_name','username','email','password','Date_Naiss','Adresse_perso','Date_Recrut','Poste_actuel','Telephone','Id_dep','Photo','Echelle','Id_struc')
         extra_kwargs={'password':{'write_only':True}}
 
+class EditUserSerializer1(serializers.ModelSerializer):
+    class Meta:
+        model=models.Employee
+        fields=('first_name','last_name','username','email','Date_Naiss','Adresse_perso','Date_Recrut','Poste_actuel','Telephone','Id_dep','Photo','Echelle','Id_struc')
+class EditUserSerializer2(serializers.ModelSerializer):
+    class Meta:
+        model=models.Employee
+        fields=('first_name','last_name','username','email','Date_Naiss','Adresse_perso','Date_Recrut','Poste_actuel','Telephone','Id_dep','Echelle','Id_struc')
+       
 
 class LoginSerializer(serializers.ModelSerializer):
     class Meta:

@@ -12,6 +12,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
 
+from .EmailSend import send_email
     
 class EmployeeCreate(generics.CreateAPIView):
     authentication_classes=()
@@ -260,8 +261,8 @@ class Departements(APIView):
 
 #dowload pdf file
 @api_view(['GET'])  # Use the appropriate HTTP method for your API
-@permission_classes([IsAuthenticated]) 
-def get(request,pk):
+# @permission_classes([IsAuthenticated]) 
+def getExigence(request,pk):
         offre=get_object_or_404(models.OffreEMP,id=pk)
         file_to_download = offre.Description
         response = HttpResponse(file_to_download,  content_type='application/pdf')
@@ -343,6 +344,20 @@ def PutUsers(request,pk):
         serializer=serializers.EmployeeSerializer(user,data=data)
         if serializer.is_valid():
             serializer.save()
+            data=serializer.data
+            if data['is_commission']:
+                print("tarek")
+                send_email(user.email,"New Roll","You are now Commission Chef")
+            elif data['is_departement']:    
+                send_email(user.email,"New Roll","You are now Departement Chef")
+            elif data['is_stricture']:
+                send_email(user.email,"New Roll","You are now Diraction Chef")
+            elif data['is_superuser']:
+                send_email(user.email,"New Roll","You are now DRH Membre")
+            else :
+                send_email(user.email,"New Roll","You are now simple Employee")
+
+            # if is_commission is_departement is_stricture is_superuser
             return Response(serializer.data)
         return Response(serializer.errors)
     return Response({'u r not superuser'})
@@ -412,6 +427,7 @@ def Add_comm(request,pk):
     fichier=get_object_or_404(models.FichierBourse,id=pk)
     id_user=data['id_comm']
     user=models.Employee.objects.get(id=id_user)
+
     fichier.id_comm=user
     fichier.save()
     return Response({'done!!!!!'})
@@ -422,12 +438,17 @@ def Set_satisfie(request,pk):
     data=request.data
     data=data['data']
     fichier=get_object_or_404(models.FichierBourse,id=pk)
-    
+    user=models.Employee.objects.get(id=fichier.id_Emp)
     fichier.Reponse_DRH=data['Reponse_DRH']
     if data['Reponse_DRH']==False:
+
         fichier.allright=False
 
     fichier.save()
+    if data['Reponse_DRH']:
+        send_email(user.email,'Etat File','Your File is statisfied')
+    else:
+        send_email(user.email,'Etat File','Your File is Not statisfied')
     return Response({'done!!!!!'})
 
 
@@ -451,12 +472,16 @@ def PutFileByCom(request,pk):
     data=request.data
     data=data['data']
     fichier=get_object_or_404(models.FichierBourse,id=pk)
-    
+    user=models.Employee.objects.get(id=fichier.id_Emp)
     fichier.Reponse_commesion=data['Reponse_commesion']
     if data['Reponse_commesion']==False:
         fichier.allright=False
-
     fichier.save()
+    if data['Reponse_commesion']:
+        send_email(user.email,'Etat File','Your File accepted By Commission')
+    else:
+        send_email(user.email,'Etat File','Your File not accepted By Commission')
+
     return Response({'done!!!!!'})
 
 
@@ -481,10 +506,16 @@ def PutFileByDir(request,pk):
     data=request.data
     data=data['data']
     fichier=get_object_or_404(models.FichierBourse,id=pk)
+    user=models.Employee.objects.get(id=fichier.id_Emp)
     
     fichier.response_Dir=data['response_Dir']
     fichier.allright=data['response_Dir']
     fichier.save()
+    if data['response_Dir']:
+        send_email(user.email,'Etat File','Your File accepted By Diraction')
+    else:
+        send_email(user.email,'Etat File','Your File not accepted By Diraction')
+
     return Response({'done!!!!!'})
 
 @api_view(['GET'])  # Use the appropriate HTTP method for your API
@@ -497,3 +528,30 @@ def FileForEmp(request):
     #     nom=emp.first_name+' '+emp.last_name
     #     data['nom']=nom
     return Response(serializer.data)
+
+@api_view(['GET'])  # Use the appropriate HTTP method for your API
+@permission_classes([IsAuthenticated])
+def ProfileData(request):
+    user=models.Employee.objects.get(id=request.user.id)
+    serializer=serializers.UserSerializer(user)
+    return Response(serializer.data)
+
+@api_view(['PUT'])  # Use the appropriate HTTP method for your API
+@permission_classes([IsAuthenticated])
+def EditProfile(request):
+    user=models.Employee.objects.get(id=request.user.id)
+    data=request.data
+    if(request.data["Photo"]):
+        serializer=serializers.EditUserSerializer1(user,data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data,status=status.HTTP_200_OK)
+        return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)  
+    serializer=serializers.EditUserSerializer2(user,data=data)
+    if serializer.is_valid():
+       serializer.save()
+       return Response(serializer.data,status=status.HTTP_200_OK)
+    return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)  
+    
+
+

@@ -13,7 +13,7 @@ urlpatterns = [
     path('fichier/',views.FichierListView.as_view()),
     path('fichier/<int:pk1>/',views.FichierView.as_view()),
     path('submitFile/<int:pk>/',views.fileSubmit),
-    path('fichier/<int:pk>/FichierB/',views.get, name='FichierB'),
+    path('fichier/<int:pk>/FichierB/',views.getExigence, name='FichierB'),
     path('parcoursprof/',views.TableListe.as_view()),
     path('parcoursprof/<int:pk1>/',views.Table.as_view()),
     path('resume/',views.Resume),
@@ -33,5 +33,7 @@ urlpatterns = [
     path('filePutCom/<int:pk>/',views.PutFileByCom),
     path('fileforDir/',views.Get_File_for_Dir),
     path('filePutDir/<int:pk>/',views.PutFileByDir),
-    path('file_for_emp/',views.FileForEmp)
+    path('file_for_emp/',views.FileForEmp),
+    path('profileData/',views.ProfileData),
+    path('editProfile/',views.EditProfile),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
