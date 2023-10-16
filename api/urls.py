@@ -36,4 +36,5 @@ urlpatterns = [
     path('file_for_emp/',views.FileForEmp),
     path('profileData/',views.ProfileData),
     path('editProfile/',views.EditProfile),
+    path('tryToken/',views.tryToken),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

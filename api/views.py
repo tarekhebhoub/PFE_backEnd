@@ -11,7 +11,7 @@ from rest_framework.views import APIView
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
-
+from rest_framework_simplejwt.tokens import RefreshToken
 from .EmailSend import send_email
     
 class EmployeeCreate(generics.CreateAPIView):
@@ -37,9 +37,15 @@ class LoginView(APIView):
         password=request.data.get("password")
         user=authenticate(username=username,password=password)
         if user:
-            Token.objects.create(user=user)
+            # refresh = RefreshToken.for_user(user)
+            try:
+                Token.objects.create(user=user)
+            except:
+                Token.objects.filter(user=user).delete()
+                Token.objects.create(user=user)
+                
             return Response({
-                "token":user.auth_token.key,
+                "token":str(user.auth_token.key),
                 "username":user.username,
                 'is_superuser':user.is_superuser,
                 'is_departement':user.is_departement,
@@ -438,7 +444,7 @@ def Set_satisfie(request,pk):
     data=request.data
     data=data['data']
     fichier=get_object_or_404(models.FichierBourse,id=pk)
-    user=models.Employee.objects.get(id=fichier.id_Emp)
+    user=models.Employee.objects.get(id=fichier.id_Emp.id)
     fichier.Reponse_DRH=data['Reponse_DRH']
     if data['Reponse_DRH']==False:
 
@@ -553,5 +559,7 @@ def EditProfile(request):
        return Response(serializer.data,status=status.HTTP_200_OK)
     return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)  
     
-
-
+@api_view(['Get'])  # Use the appropriate HTTP method for your API
+@permission_classes([IsAuthenticated])
+def tryToken(request):
+    return Response({'tarek'})
