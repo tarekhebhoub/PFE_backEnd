@@ -11,7 +11,7 @@ from rest_framework.views import APIView
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
-from rest_framework_simplejwt.tokens import RefreshToken
+# from rest_framework_simplejwt.tokens import RefreshToken
 from .EmailSend import send_email
     
 class EmployeeCreate(generics.CreateAPIView):
@@ -140,7 +140,8 @@ class FichierListView (APIView):
         data=request.data
         user_id = Token.objects.get(key=request.auth.key).user_id   
         data['id_Emp']=user_id
-        print('tarek')
+        # print('tarek')
+        
         serializer=serializers.FichierSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
@@ -306,11 +307,11 @@ def fileSubmit(request,pk):
 @permission_classes([IsAuthenticated]) 
 def FileForDep(request):
     requesting_employee=request.user
-    print(requesting_employee)
+    # print(requesting_employee)
     department = requesting_employee.Id_dep
     employees_in_same_department = models.Employee.objects.filter(Q(Id_dep=department)&Q(is_departement=False))
     employee_ids_in_same_department = employees_in_same_department.values_list('id', flat=True)
-    print(employee_ids_in_same_department)
+    # print(employee_ids_in_same_department)
 
     files_in_same_department = models.FichierBourse.objects.filter(Q(submit_fichier=True)&Q(id_Emp__in=employee_ids_in_same_department)&Q(Reponse_DRH=True))
 
@@ -352,7 +353,7 @@ def PutUsers(request,pk):
             serializer.save()
             data=serializer.data
             if data['is_commission']:
-                print("tarek")
+                # print("tarek")
                 send_email(user.email,"New Roll","You are now Commission Chef")
             elif data['is_departement']:    
                 send_email(user.email,"New Roll","You are now Departement Chef")
@@ -392,13 +393,13 @@ def PutFileByDep(request,pk):
 @api_view(['GET'])  # Use the appropriate HTTP method for your API
 @permission_classes([IsAuthenticated]) 
 def GetFileDrh_Satisfie(request):
-    files=models.FichierBourse.objects.all()
+    files=models.FichierBourse.objects.filter(submit_fichier=True)
     serializer=serializers.DepFichierSerializer(files,many=True)
     for data in serializer.data:
         emp=models.Employee.objects.get(id=data['id_Emp'])
         nom=emp.first_name+' '+emp.last_name
         data['nom']=nom
-    print(serializer.data)
+    # print(serializer.data)
     return Response(serializer.data)
 
 
@@ -411,7 +412,7 @@ def GetFileDrh_Cree_Comm(request):
         emp=models.Employee.objects.get(id=data['id_Emp'])
         nom=emp.first_name+' '+emp.last_name
         data['nom']=nom
-    print(serializer.data)
+    # print(serializer.data)
     return Response(serializer.data)
 
 
@@ -497,7 +498,7 @@ def PutFileByCom(request,pk):
 def Get_File_for_Dir(request):
     files=models.FichierBourse.objects.exclude(Reponse_commesion=None)
     offers=models.OffreEMP.objects.filter(Id_struc=request.user.Id_struc)
-    print(offers)
+    # print(offers)
     files=files.filter(id_Offre__in=offers)
     serializer=serializers.DepFichierSerializer(files,many=True)
     for data in serializer.data:
@@ -527,7 +528,7 @@ def PutFileByDir(request,pk):
 @api_view(['GET'])  # Use the appropriate HTTP method for your API
 @permission_classes([IsAuthenticated])
 def FileForEmp(request):
-    files=models.FichierBourse.objects.filter(id_Emp=request.user.id)
+    files=models.FichierBourse.objects.filter(id_Emp=request.user.id,submit_fichier=True)
     serializer=serializers.FichierSerializer(files,many=True)
     # for data in serializer.data:
     #     emp=models.Employee.objects.get(id=data['id_Emp'])

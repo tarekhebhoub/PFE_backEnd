@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-06%vi#+uq&km&y8$7d1%v%pdd%a*(c!!pux%nxljilv)xoh#eh
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1','192.168.43.114','hebhoubtarek.pythonanywhere.com']
+ALLOWED_HOSTS = ['127.0.0.1','192.168.43.114','105.235.130.117']
 
 
 # Application definition
@@ -122,8 +122,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
-STATIC_URL = 'static/'
-
+STATIC_URL = '/home/tarek/Documents/myprojet/sonatrach/static/'
+STATIC_ROOT='/home/tarek/Documents/myprojet/sonatrach/static/'
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
@@ -136,7 +136,7 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.TokenAuthentication',
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        # 'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
